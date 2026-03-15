@@ -29,6 +29,9 @@
     --shadow-color: rgba(0,0,0,0.15);
     --header-bg: #e8e0d4;
     --footer-bg: #d4cabc;
+    --status-message-bg: #e8e0d4;
+    --status-message-text: #4a4238;
+    --result-word: #4a4238;
 }
 
 /* Dark mode variables */
@@ -56,6 +59,9 @@
     --shadow-color: rgba(0,0,0,0.3);
     --header-bg: #2d2d2d;
     --footer-bg: #2d2d2d;
+    --status-message-bg: #3d3d3d;
+    --status-message-text: #e0e0e0;
+    --result-word: #e0e0e0;
 }
 
 body {
@@ -477,6 +483,27 @@ header p {
         padding: 10px;
         max-height: 400px;
     }
+}
+
+/* Status message style */
+.status-message {
+    background: var(--status-message-bg);
+    color: var(--status-message-text);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid var(--border-primary);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Result word style */
+.result-word {
+    color: var(--result-word);
+    flex: 1;
+    word-break: break-word;
+    transition: color 0.3s ease;
 }
 
 .placeholder-text {
