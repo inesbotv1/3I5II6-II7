@@ -15,8 +15,7 @@ themeToggle.addEventListener('click', () => {
     localStorage.setItem('theme', newTheme);
 });
 
-// Rest of your existing JavaScript code below
-// ... (keep all your existing functionality)
+// InesBot Searcher Class
 class InesBotSearcher {
     constructor() {
         this.words = [];
@@ -53,9 +52,7 @@ class InesBotSearcher {
                 headers: {
                     'Accept': 'text/plain, text/plain;charset=utf-8',
                 },
-                // Add mode: 'cors' explicitly (though it's default for fetch)
                 mode: 'cors',
-                // Don't send cookies or credentials
                 credentials: 'omit'
             });
             
