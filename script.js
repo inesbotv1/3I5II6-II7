@@ -341,7 +341,7 @@ function makeWordsClickable() {
 }
 
 // ============================================
-// RARE PREFIX FINDER - DROPDOWN LOADING VERSION
+// RARE PREFIX FINDER - FIXED VERSION
 // ============================================
 
 (function() {
@@ -351,9 +351,55 @@ function makeWordsClickable() {
     let isLoading = false;
     let searchState = null; // Store search state for lazy loading
     
-    // Add theme-aware styles
+    // Add theme-aware styles with proper CSS variables
     const style = document.createElement('style');
     style.textContent = `
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-tertiary: #f0f0f0;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #dddddd;
+            --accent: #4CAF50;
+            --accent-hover: #45a049;
+            --success-bg: #d4edda;
+            --success-text: #155724;
+            --success-border: #c3e6cb;
+            --error-bg: #f8d7da;
+            --error-text: #721c24;
+            --error-border: #f5c6cb;
+            --loading-bg: #e9ecef;
+            --loading-text: #495057;
+            --loading-border: #ced4da;
+            --badge-word-bg: #4CAF50;
+            --badge-ends-bg: #FF9800;
+            --badge-text: #ffffff;
+        }
+        
+        /* Dark mode overrides - these will be applied when dark mode class is present */
+        body.dark-mode, 
+        [data-theme="dark"], 
+        .dark-mode {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3d3d3d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #aaaaaa;
+            --border-color: #444444;
+            --accent: #4CAF50;
+            --accent-hover: #5cb85c;
+            --success-bg: #1e3a2e;
+            --success-text: #8bc34a;
+            --success-border: #2d5a3a;
+            --error-bg: #3a1e1e;
+            --error-text: #f8a5a5;
+            --error-border: #5a2d2d;
+            --loading-bg: #2d2d2d;
+            --loading-text: #cccccc;
+            --loading-border: #444444;
+        }
+        
         .rare-prefix-item {
             margin-bottom: 10px;
             border: 1px solid var(--border-color);
@@ -369,6 +415,7 @@ function makeWordsClickable() {
             padding: 10px;
             background: var(--bg-secondary);
             cursor: pointer;
+            color: var(--text-primary);
         }
         
         .rare-prefix-badge {
@@ -418,8 +465,8 @@ function makeWordsClickable() {
         }
         
         .badge-word {
-            background: #4CAF50;
-            color: white;
+            background: var(--badge-word-bg);
+            color: var(--badge-text);
             padding: 2px 6px;
             border-radius: 4px;
             font-size: 0.7em;
@@ -427,8 +474,8 @@ function makeWordsClickable() {
         }
         
         .badge-ends {
-            background: #FF9800;
-            color: white;
+            background: var(--badge-ends-bg);
+            color: var(--badge-text);
             padding: 2px 6px;
             border-radius: 4px;
             font-size: 0.7em;
@@ -464,7 +511,7 @@ function makeWordsClickable() {
         }
         
         .load-more-button:hover {
-            opacity: 0.9;
+            background: var(--accent-hover);
             transform: translateY(-1px);
         }
         
@@ -482,11 +529,11 @@ function makeWordsClickable() {
         .loading-more {
             text-align: center;
             padding: 15px;
-            background: var(--bg-secondary);
+            background: var(--loading-bg);
             border-radius: 4px;
             margin: 10px 0;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
+            color: var(--loading-text);
+            border: 1px solid var(--loading-border);
         }
         
         .status-message {
@@ -537,10 +584,37 @@ function makeWordsClickable() {
         
         .max-words-indicator {
             font-weight: bold;
-            color: #4CAF50;
+            color: var(--accent);
             background: var(--bg-secondary);
             padding: 2px 8px;
             border-radius: 12px;
+        }
+        
+        .loading-message {
+            padding: 20px;
+            text-align: center;
+            color: var(--loading-text);
+            background: var(--loading-bg);
+            border: 1px solid var(--loading-border);
+            border-radius: 4px;
+        }
+        
+        .success-message {
+            padding: 20px;
+            text-align: center;
+            color: var(--success-text);
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+            border-radius: 4px;
+        }
+        
+        .error-message {
+            padding: 20px;
+            text-align: center;
+            color: var(--error-text);
+            background: var(--error-bg);
+            border: 1px solid var(--error-border);
+            border-radius: 4px;
         }
     `;
     document.head.appendChild(style);
@@ -649,8 +723,9 @@ function makeWordsClickable() {
         // Add event listeners to radio buttons
         const modeRadios = document.querySelectorAll('input[name="filter-mode"]');
         const maxWordsSelect = document.getElementById('rare-max-words');
+        const maxWordsIndicator = document.getElementById('mode-max-words-indicator');
         
-        if (maxWordsSelect) {
+        if (maxWordsSelect && maxWordsIndicator) {
             modeRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
                     if (this.value === 'max-words') {
@@ -659,7 +734,7 @@ function makeWordsClickable() {
                         maxWordsSelect.style.opacity = '1';
                         maxWordsSelect.style.cursor = 'pointer';
                         // Update indicator
-                        document.getElementById('mode-max-words-indicator').textContent = maxWordsSelect.value;
+                        maxWordsIndicator.textContent = maxWordsSelect.value;
                     } else {
                         // Disable max words select
                         maxWordsSelect.disabled = true;
@@ -671,7 +746,7 @@ function makeWordsClickable() {
             
             // Update indicator when max words changes
             maxWordsSelect.addEventListener('change', function() {
-                document.getElementById('mode-max-words-indicator').textContent = this.value;
+                maxWordsIndicator.textContent = this.value;
             });
         }
     }
@@ -944,6 +1019,12 @@ function makeWordsClickable() {
             document.getElementById('rare-max-words').style.cursor = 'pointer';
         }
         
+        // Update indicator
+        const maxWordsIndicator = document.getElementById('mode-max-words-indicator');
+        if (maxWordsIndicator) {
+            maxWordsIndicator.textContent = '2';
+        }
+        
         document.querySelectorAll('input[name="rare-sort"]')[0].checked = true;
         document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Filters cleared</p>';
         document.getElementById('result-count').textContent = '0';
@@ -998,9 +1079,25 @@ function makeWordsClickable() {
         }
     };
     
+    // Function to detect and apply dark mode
+    function detectAndApplyDarkMode() {
+        // Check if dark mode is active
+        const isDarkMode = document.body.classList.contains('dark-mode') || 
+                          document.documentElement.getAttribute('data-theme') === 'dark' ||
+                          window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Apply appropriate class if needed
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+        }
+    }
+    
     // Initialize everything
     function initialize() {
         console.log('Initializing Rare Prefix Finder...');
+        
+        // Detect dark mode
+        detectAndApplyDarkMode();
         
         // Create filter mode UI
         createFilterModeUI();
@@ -1008,18 +1105,30 @@ function makeWordsClickable() {
         // Setup max words dropdown
         const maxSelect = document.getElementById('rare-max-words');
         if (maxSelect) {
-            maxSelect.innerHTML = `
-                <option value="2" selected>2 words</option>
-                <option value="3">3 words</option>
-                <option value="4">4 words</option>
-                <option value="5">5 words</option>
-                <option value="6">6 words</option>
-                <option value="7">7 words</option>
-                <option value="8">8 words</option>
-                <option value="9">9 words</option>
-                <option value="10">10 words</option>
-            `;
+            // Clear existing options
+            maxSelect.innerHTML = '';
+            
+            // Add options from 2 to 10
+            for (let i = 2; i <= 10; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i + ' word' + (i > 1 ? 's' : '');
+                if (i === 2) option.selected = true;
+                maxSelect.appendChild(option);
+            }
         }
+        
+        // Listen for dark mode changes
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'class' || mutation.attributeName === 'data-theme') {
+                    detectAndApplyDarkMode();
+                }
+            });
+        });
+        
+        observer.observe(document.body, { attributes: true });
+        observer.observe(document.documentElement, { attributes: true });
     }
     
     // Run initialization based on DOM state
