@@ -1287,26 +1287,15 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // ============================================
-// RARE PREFIX FINDER - UPDATED VERSION
+// RARE PREFIX FINDER - INDEPENDENT WORD LIST
 // ============================================
 
 (function() {
-    console.log('🔧 Initializing Rare Prefix Finder...');
+    console.log('🔧 Initializing Rare Prefix Finder (Independent Mode)...');
     
-    // Get searcher instance - FIXED
-    function getSearcher() {
-        // Try global variable first
-        if (window.searcher) return window.searcher;
-        
-        // Try to find any InesBotSearcher instance
-        for (let key in window) {
-            if (window[key] instanceof InesBotSearcher) {
-                window.searcher = window[key]; // Store for later
-                return window.searcher;
-            }
-        }
-        return null;
-    }
+    // Store words separately for rare finder
+    let rareWords = [];
+    let isLoading = false;
     
     // Mode switching
     const normalBtn = document.getElementById('mode-normal');
@@ -1320,6 +1309,9 @@ document.addEventListener('DOMContentLoaded', () => {
             rareBtn.classList.remove('mode-active');
             normalSection.style.display = 'block';
             rareSection.style.display = 'none';
+            
+            // Clear rare results when switching away
+            document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Switched to Normal Mode</p>';
         });
         
         rareBtn.addEventListener('click', () => {
@@ -1328,28 +1320,122 @@ document.addEventListener('DOMContentLoaded', () => {
             normalSection.style.display = 'none';
             rareSection.style.display = 'block';
             
-            document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Enter filters and click "Find Rare Prefixes"...</p>';
-            document.getElementById('result-count').textContent = '0';
+            // Load words for rare finder when switching to rare mode
+            loadRareWords();
         });
     }
     
-    // Rare search button
-    document.getElementById('rare-search-btn')?.addEventListener('click', () => {
-        const searcher = getSearcher();
+    // Function to load words from GitHub (same as original)
+    async function loadRareWords() {
+        if (isLoading) return;
         
-        if (!searcher) {
-            alert('Searcher not found. Please refresh the page.');
+        isLoading = true;
+        const resultsBox = document.getElementById('results-box');
+        resultsBox.innerHTML = '<div class="loading-message">⏳ Loading words for Rare Finder from GitHub...</div>';
+        
+        try {
+            const wordListUrl = 'https://raw.githubusercontent.com/inesbotv1/askari/refs/heads/main/lastletter.txt';
+            const urlWithCache = `${wordListUrl}?t=${Date.now()}`;
+            
+            const response = await fetch(urlWithCache, {
+                method: 'GET',
+                headers: { 'Accept': 'text/plain' },
+                mode: 'cors',
+                credentials: 'omit'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to load: ${response.status}`);
+            }
+            
+            const text = await response.text();
+            
+            // Parse words exactly like the original
+            rareWords = text.split(/\r?\n/)
+                .map(word => word.trim())
+                .filter(word => word.length > 0);
+            
+            rareWords = [...new Set(rareWords)]; // Remove duplicates
+            
+            console.log(`📚 Rare Finder loaded ${rareWords.length} words`);
+            
+            resultsBox.innerHTML = `<div class="success-message">✅ Rare Finder loaded ${rareWords.length} words! Ready to search.</div>`;
+            document.getElementById('result-count').textContent = '0';
+            
+        } catch (error) {
+            console.error('❌ Rare Finder failed to load words:', error);
+            resultsBox.innerHTML = '<div class="error-message">❌ Failed to load words from GitHub</div>';
+            rareWords = [];
+        } finally {
+            isLoading = false;
+        }
+    }
+    
+    // RARE SEARCH BUTTON
+    document.getElementById('rare-search-btn')?.addEventListener('click', function() {
+        console.log('Rare search clicked');
+        
+        // Check if words are loaded
+        if (rareWords.length === 0) {
+            if (isLoading) {
+                document.getElementById('results-box').innerHTML = '<div class="loading-message">⏳ Words still loading, please wait...</div>';
+            } else {
+                // Try loading again
+                loadRareWords();
+                document.getElementById('results-box').innerHTML = '<div class="loading-message">⏳ Loading words, please try again in a moment...</div>';
+            }
             return;
         }
         
-        if (!searcher.words || searcher.words.length === 0) {
-            alert('Words still loading. Please wait a moment and try again.');
-            return;
-        }
+        console.log(`Analyzing ${rareWords.length} words...`);
         
+        // Get filter values
         const prefixFilter = document.getElementById('rare-prefix').value.toLowerCase().trim();
         const prefixLength = parseInt(document.getElementById('rare-prefix-length').value);
         const maxWords = parseInt(document.getElementById('rare-max-words').value);
+        
+        console.log(`Filters: prefixFilter="${prefixFilter}", length=${prefixLength}, max=${maxWords}`);
+        
+        // Count prefixes
+        const prefixCounts = new Map();
+        
+        // Loop through ALL words
+        rareWords.forEach(word => {
+            if (word.length >= prefixLength) {
+                const prefix = word.slice(0, prefixLength).toLowerCase();
+                
+                // Apply prefix filter if specified
+                if (prefixFilter && !prefix.startsWith(prefixFilter)) {
+                    return;
+                }
+                
+                // Count it
+                prefixCounts.set(prefix, (prefixCounts.get(prefix) || 0) + 1);
+            }
+        });
+        
+        console.log(`Found ${prefixCounts.size} total prefixes`);
+        
+        // Build results array - ONLY 3-6 WORDS
+        const rarePrefixes = [];
+        
+        prefixCounts.forEach((count, prefix) => {
+            // ONLY include if count is between 3 and maxWords (inclusive)
+            if (count >= 3 && count <= maxWords) {
+                // Get all words with this prefix
+                const allWords = rareWords.filter(word => 
+                    word.toLowerCase().startsWith(prefix)
+                );
+                
+                rarePrefixes.push({
+                    prefix: prefix,
+                    count: count,
+                    allWords: allWords
+                });
+            }
+        });
+        
+        console.log(`Found ${rarePrefixes.length} rare prefixes with 3-${maxWords} words`);
         
         // Get sort option
         let sortOption = 'count-asc';
@@ -1357,30 +1443,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (radio.checked) sortOption = radio.value;
         });
         
-        // Count prefixes
-        const prefixCounts = new Map();
-        
-        searcher.words.forEach(word => {
-            if (word.length >= prefixLength) {
-                const prefix = word.slice(0, prefixLength).toLowerCase();
-                if (prefixFilter && !prefix.startsWith(prefixFilter)) return;
-                prefixCounts.set(prefix, (prefixCounts.get(prefix) || 0) + 1);
-            }
-        });
-        
-        // Build results - MINIMUM 3 WORDS (changed from 1)
-        const rarePrefixes = [];
-        prefixCounts.forEach((count, prefix) => {
-            if (count >= 3 && count <= maxWords) {  // Changed from >=1 to >=3
-                rarePrefixes.push({
-                    prefix: prefix,
-                    count: count,
-                    allWords: searcher.words.filter(w => w.toLowerCase().startsWith(prefix))
-                });
-            }
-        });
-        
-        // Sort
+        // Sort results
         if (sortOption === 'count-asc') {
             rarePrefixes.sort((a, b) => a.count - b.count || a.prefix.localeCompare(b.prefix));
         } else if (sortOption === 'count-desc') {
@@ -1389,12 +1452,15 @@ document.addEventListener('DOMContentLoaded', () => {
             rarePrefixes.sort((a, b) => a.prefix.localeCompare(b.prefix));
         }
         
+        // Update result count
         document.getElementById('result-count').textContent = rarePrefixes.length;
+        
+        // Display results
         displayRareResults(rarePrefixes, prefixFilter, prefixLength, maxWords);
     });
     
-    // Rare clear button
-    document.getElementById('rare-clear-btn')?.addEventListener('click', () => {
+    // RARE CLEAR BUTTON
+    document.getElementById('rare-clear-btn')?.addEventListener('click', function() {
         document.getElementById('rare-prefix').value = '';
         document.getElementById('rare-prefix-length').value = '3';
         document.getElementById('rare-max-words').value = '6';
@@ -1403,25 +1469,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if (radio.value === 'count-asc') radio.checked = true;
         });
         
-        document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Filters cleared. Click "Find Rare Prefixes" to search...</p>';
+        if (rareWords.length > 0) {
+            document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Filters cleared. Click "Find Rare Prefixes" to search...</p>';
+        } else {
+            document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Click "Find Rare Prefixes" to load words and search...</p>';
+        }
         document.getElementById('result-count').textContent = '0';
     });
     
-    // Enter key for rare mode
+    // ENTER KEY for rare mode
     document.getElementById('rare-prefix')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             document.getElementById('rare-search-btn').click();
         }
     });
     
-    // Display results
+    // DISPLAY RESULTS FUNCTION
     function displayRareResults(prefixes, prefixFilter, prefixLength, maxWords) {
         const resultsBox = document.getElementById('results-box');
         
         if (prefixes.length === 0) {
             let message = `No ${prefixLength}-letter prefixes`;
             if (prefixFilter) message += ` starting with "${prefixFilter}"`;
-            message += ` with 3-${maxWords} words found`;  // Updated message
+            message += ` with 3-${maxWords} words found`;
             resultsBox.innerHTML = `<div class="status-message">${message}</div>`;
             return;
         }
@@ -1438,10 +1508,10 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `
                 <div class="rare-prefix-item">
                     <div class="rare-prefix-header">
-                        <span class="rare-prefix-badge">${item.count} ${item.count === 1 ? 'word' : 'words'}</span>
+                        <span class="rare-prefix-badge">${item.count} words</span>
                         <span class="rare-prefix-value">"${item.prefix}"</span>
                         <span class="rare-prefix-toggle" onclick="toggleRareWords(this)">
-                            📋 Show ${item.count} ${item.count === 1 ? 'word' : 'words'}
+                            📋 Show words
                         </span>
                     </div>
                     <div class="rare-prefix-words">
@@ -1454,24 +1524,14 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsBox.innerHTML = html;
     }
     
+    // TOGGLE WORDS FUNCTION
     window.toggleRareWords = function(element) {
         const wordsDiv = element.closest('.rare-prefix-item').querySelector('.rare-prefix-words');
         wordsDiv.classList.toggle('show');
         element.textContent = wordsDiv.classList.contains('show') 
             ? '🔽 Hide words' 
-            : `📋 Show ${element.closest('.rare-prefix-header').querySelector('.rare-prefix-badge').textContent}`;
+            : '📋 Show words';
     };
     
-    // Also update the min words dropdown to show 3 as the minimum
-    const minWordsSelect = document.getElementById('rare-min-words');
-    if (minWordsSelect) {
-        // Update options to reflect 3 as minimum
-        minWordsSelect.innerHTML = `
-            <option value="3" selected>3 words (minimum)</option>
-            <option value="4">4+ words</option>
-            <option value="5">5+ words</option>
-        `;
-    }
-    
-    console.log('✅ Rare Prefix Finder Ready - Looking for prefixes with 3-6 words');
+    console.log('✅ Rare Prefix Finder Ready - Independent word list');
 })();
