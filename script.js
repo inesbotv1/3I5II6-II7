@@ -605,10 +605,14 @@ function createFilterModeUI() {
     // First, group words by their prefix
     const wordsByPrefix = new Map();
     
-    // Group all words by their prefix
+    // Group all words by their prefix, applying the prefix filter
     for (let word of rareWords) {
         if (word.length >= prefixLength) {
             const prefix = word.slice(0, prefixLength).toLowerCase();
+            
+            // Apply the prefix filter here
+            if (prefixFilter && !prefix.startsWith(prefixFilter)) continue;
+            
             if (!wordsByPrefix.has(prefix)) {
                 wordsByPrefix.set(prefix, []);
             }
