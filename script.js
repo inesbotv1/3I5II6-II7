@@ -578,7 +578,17 @@ function makeWordsClickable() {
             document.getElementById('results-box').innerHTML = '';
             
             // Load first page
-            loadMoreResults();
+            if (validPrefixes.length > 0) {
+                loadMoreResults();
+            } else {
+                let message = '';
+                if (filterMode === 'max-words') {
+                    message = `No ${prefixLength}-letter prefixes with 2-${maxWords} words found`;
+                } else {
+                    message = `No ${prefixLength}-letter prefixes with words longer than 6 letters found`;
+                }
+                document.getElementById('results-box').innerHTML = `<div class="status-message">${message}</div>`;
+            }
         }, 10);
     });
     
@@ -621,6 +631,11 @@ function makeWordsClickable() {
         
         // Show loading indicator
         const resultsBox = document.getElementById('results-box');
+        
+        // Remove any existing loading indicator
+        const existingLoader = document.getElementById('loading-indicator');
+        if (existingLoader) existingLoader.remove();
+        
         const loadingDiv = document.createElement('div');
         loadingDiv.className = 'loading-message';
         loadingDiv.id = 'loading-indicator';
@@ -668,6 +683,9 @@ function makeWordsClickable() {
             // Update loaded count
             searchState.loadedCount = end;
             
+            // Remove existing load more button if present
+            document.getElementById('load-more-container')?.remove();
+            
             // Add "Load More" button if there are more results
             if (searchState.loadedCount < totalCount) {
                 addLoadMoreButton();
@@ -678,10 +696,9 @@ function makeWordsClickable() {
     // Function to display additional results
     function displayMoreResults(results) {
         const resultsBox = document.getElementById('results-box');
-        const { filterMode, maxWords, totalCount, loadedCount } = searchState;
+        const { filterMode, maxWords, totalCount, loadedCount, wordSet } = searchState;
         
-        // Remove existing load more button if present
-        document.getElementById('load-more-container')?.remove();
+        // Remove existing load more button if present (but we'll do this after)
         
         let modeDescription = '';
         if (filterMode === 'max-words') {
@@ -729,6 +746,10 @@ function makeWordsClickable() {
     function addLoadMoreButton() {
         const resultsBox = document.getElementById('results-box');
         const { loadedCount, totalCount } = searchState;
+        
+        // Remove any existing load more container
+        const existingContainer = document.getElementById('load-more-container');
+        if (existingContainer) existingContainer.remove();
         
         // Create container for button and counter
         const container = document.createElement('div');
