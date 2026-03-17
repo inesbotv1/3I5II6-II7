@@ -1,3 +1,4 @@
+// Theme Toggle
 const themeToggle = document.getElementById('theme-toggle');
 const htmlElement = document.documentElement;
 
@@ -18,13 +19,13 @@ themeToggle.addEventListener('click', () => {
     }, 20);
 });
 
+// Main Searcher Class
 class InesBotSearcher {
     constructor() {
         this.words = [];
         this.wordListUrl = 'https://raw.githubusercontent.com/inesbotv1/askari/refs/heads/main/lastletter.txt';
         
         this.checkRequiredElements();
-        
         this.initEventListeners();
         setTimeout(() => {
             this.loadWordsFromURL();
@@ -370,10 +371,17 @@ class InesBotSearcher {
     }
 }
 
+// Initialize
+let searcher;
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM fully loaded, initializing InesBotSearcher...');
-    new InesBotSearcher();
+    searcher = new InesBotSearcher();
 });
+
+// ============================================
+// DICTIONARY PANEL (from your original code)
+// ============================================
+
 (function() {
     if (typeof InesBotSearcher === 'undefined') {
         console.error('InesBotSearcher not found!');
@@ -717,7 +725,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log('✅ Persistent Dictionary Panel Ready!');
     console.log('📌 Drag the header to move it around');
-})();;
+})();
+
+// ============================================
+// MOBILE DICTIONARY PANEL
+// ============================================
+
 (function() {
     if (typeof InesBotSearcher === 'undefined') {
         console.error('InesBotSearcher not found!');
@@ -1262,167 +1275,140 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('✅ Persistent Dictionary Panel Ready!');
     console.log('📱 Mobile compatible - drag handle to resize, swipe down to close');
 })();
+
+// ============================================
+// UNDERLINE STYLE
+// ============================================
+
 (function() {
     const style = document.createElement('style');
     style.textContent = '.result-word { text-decoration: underline !important; text-underline-offset: 2px; text-decoration-thickness: 1px; text-decoration-color: var(--text-secondary) !important; }';
     document.head.appendChild(style);
 })();
+
 // ============================================
-// RARE PREFIX FINDER - INDEPENDENT SECTION
+// RARE PREFIX FINDER - ADD THIS AT THE VERY END
 // ============================================
 
 (function() {
-    console.log('🔧 Initializing Independent Rare Prefix Finder...');
+    console.log('🔧 Initializing Rare Prefix Finder...');
     
-    // Get references to DOM elements
+    // Mode switching
     const normalBtn = document.getElementById('mode-normal');
     const rareBtn = document.getElementById('mode-rare');
     const normalSection = document.getElementById('normal-search-section');
     const rareSection = document.getElementById('rare-finder-section');
-    const normalSearchBtn = document.getElementById('search-btn');
-    const normalClearBtn = document.getElementById('clear-btn');
-    const rareSearchBtn = document.getElementById('rare-search-btn');
-    const rareClearBtn = document.getElementById('rare-clear-btn');
     
-    // Store reference to the searcher instance
-    let searcher = null;
-    setTimeout(() => {
-        for (let key in window) {
-            if (window[key] instanceof InesBotSearcher) {
-                searcher = window[key];
-                console.log('✅ Found searcher instance with', searcher.words.length, 'words');
-                break;
-            }
-        }
-    }, 1000);
-    
-    // Mode switching
-    function setActiveMode(mode) {
-        if (mode === 'normal') {
+    if (normalBtn && rareBtn && normalSection && rareSection) {
+        normalBtn.addEventListener('click', () => {
             normalBtn.classList.add('mode-active');
             rareBtn.classList.remove('mode-active');
             normalSection.style.display = 'block';
             rareSection.style.display = 'none';
-        } else {
+        });
+        
+        rareBtn.addEventListener('click', () => {
             normalBtn.classList.remove('mode-active');
             rareBtn.classList.add('mode-active');
             normalSection.style.display = 'none';
             rareSection.style.display = 'block';
             
-            // Clear results when switching to rare mode
-            const resultsBox = document.getElementById('results-box');
-            if (resultsBox) {
-                resultsBox.innerHTML = '<p class="placeholder-text">Enter prefix filters and click "Find Rare Prefixes"...</p>';
-            }
+            document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Enter filters and click "Find Rare Prefixes"...</p>';
             document.getElementById('result-count').textContent = '0';
+        });
+    }
+    
+    // Rare search button
+    document.getElementById('rare-search-btn')?.addEventListener('click', () => {
+        // Get searcher instance
+        let searcher;
+        for (let key in window) {
+            if (window[key] instanceof InesBotSearcher) {
+                searcher = window[key];
+                break;
+            }
         }
-    }
-    
-    // Add mode toggle listeners
-    if (normalBtn && rareBtn) {
-        normalBtn.addEventListener('click', () => setActiveMode('normal'));
-        rareBtn.addEventListener('click', () => setActiveMode('rare'));
-    }
-    
-    // RARE FINDER FUNCTIONALITY
-    if (rareSearchBtn) {
-        rareSearchBtn.addEventListener('click', function() {
-            if (!searcher || !searcher.words || searcher.words.length === 0) {
-                alert('Words not loaded yet. Please wait a moment and try again.');
-                return;
-            }
-            
-            // Get filter values
-            const prefixFilter = document.getElementById('rare-prefix').value.toLowerCase().trim();
-            const prefixLength = parseInt(document.getElementById('rare-prefix-length').value);
-            const maxWords = parseInt(document.getElementById('rare-max-words').value);
-            
-            // Get sort option
-            let sortOption = 'count-asc';
-            document.querySelectorAll('input[name="rare-sort"]').forEach(radio => {
-                if (radio.checked) sortOption = radio.value;
-            });
-            
-            // Count prefixes
-            const prefixCounts = new Map();
-            
-            searcher.words.forEach(word => {
-                if (word.length >= prefixLength) {
-                    const prefix = word.slice(0, prefixLength).toLowerCase();
-                    
-                    // Apply prefix filter if specified
-                    if (prefixFilter && !prefix.startsWith(prefixFilter)) {
-                        return;
-                    }
-                    
-                    prefixCounts.set(prefix, (prefixCounts.get(prefix) || 0) + 1);
-                }
-            });
-            
-            // Build results array
-            const rarePrefixes = [];
-            prefixCounts.forEach((count, prefix) => {
-                if (count <= maxWords) {
-                    const allWords = searcher.words.filter(w => 
-                        w.toLowerCase().startsWith(prefix)
-                    );
-                    
-                    rarePrefixes.push({
-                        prefix: prefix,
-                        count: count,
-                        allWords: allWords
-                    });
-                }
-            });
-            
-            // Sort results
-            if (sortOption === 'count-asc') {
-                rarePrefixes.sort((a, b) => a.count - b.count || a.prefix.localeCompare(b.prefix));
-            } else if (sortOption === 'count-desc') {
-                rarePrefixes.sort((a, b) => b.count - a.count || a.prefix.localeCompare(b.prefix));
-            } else if (sortOption === 'alpha') {
-                rarePrefixes.sort((a, b) => a.prefix.localeCompare(b.prefix));
-            }
-            
-            // Update result count
-            document.getElementById('result-count').textContent = rarePrefixes.length;
-            
-            // Display results
-            displayRareResults(rarePrefixes, prefixFilter, prefixLength, maxWords);
+        
+        if (!searcher || !searcher.words || searcher.words.length === 0) {
+            alert('Words not loaded yet. Please wait.');
+            return;
+        }
+        
+        const prefixFilter = document.getElementById('rare-prefix').value.toLowerCase().trim();
+        const prefixLength = parseInt(document.getElementById('rare-prefix-length').value);
+        const maxWords = parseInt(document.getElementById('rare-max-words').value);
+        
+        // Get sort option
+        let sortOption = 'count-asc';
+        document.querySelectorAll('input[name="rare-sort"]').forEach(radio => {
+            if (radio.checked) sortOption = radio.value;
         });
-    }
-    
-    // Clear rare filters
-    if (rareClearBtn) {
-        rareClearBtn.addEventListener('click', function() {
-            document.getElementById('rare-prefix').value = '';
-            document.getElementById('rare-prefix-length').value = '3';
-            document.getElementById('rare-max-words').value = '6';
-            
-            // Reset sort to default
-            document.querySelectorAll('input[name="rare-sort"]').forEach(radio => {
-                if (radio.value === 'count-asc') radio.checked = true;
-            });
-            
-            // Clear results
-            const resultsBox = document.getElementById('results-box');
-            if (resultsBox) {
-                resultsBox.innerHTML = '<p class="placeholder-text">Filters cleared. Click "Find Rare Prefixes" to search...</p>';
+        
+        // Count prefixes
+        const prefixCounts = new Map();
+        
+        searcher.words.forEach(word => {
+            if (word.length >= prefixLength) {
+                const prefix = word.slice(0, prefixLength).toLowerCase();
+                if (prefixFilter && !prefix.startsWith(prefixFilter)) return;
+                prefixCounts.set(prefix, (prefixCounts.get(prefix) || 0) + 1);
             }
-            document.getElementById('result-count').textContent = '0';
         });
-    }
+        
+        // Build results
+        const rarePrefixes = [];
+        prefixCounts.forEach((count, prefix) => {
+            if (count <= maxWords) {
+                rarePrefixes.push({
+                    prefix: prefix,
+                    count: count,
+                    allWords: searcher.words.filter(w => w.toLowerCase().startsWith(prefix))
+                });
+            }
+        });
+        
+        // Sort
+        if (sortOption === 'count-asc') {
+            rarePrefixes.sort((a, b) => a.count - b.count || a.prefix.localeCompare(b.prefix));
+        } else if (sortOption === 'count-desc') {
+            rarePrefixes.sort((a, b) => b.count - a.count || a.prefix.localeCompare(b.prefix));
+        } else {
+            rarePrefixes.sort((a, b) => a.prefix.localeCompare(b.prefix));
+        }
+        
+        document.getElementById('result-count').textContent = rarePrefixes.length;
+        displayRareResults(rarePrefixes, prefixFilter, prefixLength, maxWords);
+    });
     
-    // Display results function
+    // Rare clear button
+    document.getElementById('rare-clear-btn')?.addEventListener('click', () => {
+        document.getElementById('rare-prefix').value = '';
+        document.getElementById('rare-prefix-length').value = '3';
+        document.getElementById('rare-max-words').value = '6';
+        
+        document.querySelectorAll('input[name="rare-sort"]').forEach(radio => {
+            if (radio.value === 'count-asc') radio.checked = true;
+        });
+        
+        document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Filters cleared. Click "Find Rare Prefixes" to search...</p>';
+        document.getElementById('result-count').textContent = '0';
+    });
+    
+    // Enter key for rare mode
+    document.getElementById('rare-prefix')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('rare-search-btn').click();
+        }
+    });
+    
+    // Display results
     function displayRareResults(prefixes, prefixFilter, prefixLength, maxWords) {
         const resultsBox = document.getElementById('results-box');
-        if (!resultsBox) return;
         
         if (prefixes.length === 0) {
             let message = `No ${prefixLength}-letter prefixes`;
             if (prefixFilter) message += ` starting with "${prefixFilter}"`;
             message += ` with ≤${maxWords} words found`;
-            
             resultsBox.innerHTML = `<div class="status-message">${message}</div>`;
             return;
         }
@@ -1455,30 +1441,11 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsBox.innerHTML = html;
     }
     
-    // Make toggle function global
     window.toggleRareWords = function(element) {
         const wordsDiv = element.closest('.rare-prefix-item').querySelector('.rare-prefix-words');
-        if (wordsDiv) {
-            wordsDiv.classList.toggle('show');
-            element.textContent = wordsDiv.classList.contains('show') 
-                ? '🔽 Hide words' 
-                : `📋 Show ${element.closest('.rare-prefix-header').querySelector('.rare-prefix-badge').textContent}`;
-        }
+        wordsDiv.classList.toggle('show');
+        element.textContent = wordsDiv.classList.contains('show') 
+            ? '🔽 Hide words' 
+            : `📋 Show ${element.closest('.rare-prefix-header').querySelector('.rare-prefix-badge').textContent}`;
     };
-    
-    // Enter key support for rare mode
-    const rarePrefixInput = document.getElementById('rare-prefix');
-    if (rarePrefixInput) {
-        rarePrefixInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                rareSearchBtn.click();
-            }
-        });
-    }
-    
-    console.log('✅ Independent Rare Prefix Finder Ready!');
-    console.log('📝 You can now search for prefixes like "a" that have few words');
-})();
-    console.log('✅ Mode Toggle & Rare Finder Ready!');
 })();
