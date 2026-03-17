@@ -689,40 +689,43 @@ function createFilterModeUI() {
         if (e.key === 'Enter') document.getElementById('rare-search-btn').click();
     });
     
-// Function to load verified results (keeps loading until we have pageSize valid ones)
-function loadVerifiedResults(isFirstLoad = false) {
-    if (!searchState) return;
+// Function to add "Load More" button - IMPROVED STYLING
+function addLoadMoreButton() {
+    const resultsBox = document.getElementById('results-box');
+    const { currentIndex, totalCount, validResults } = searchState;
     
-    const { allPrefixes, currentIndex, pageSize, wordSet, totalCount } = searchState;
+    // Remove any existing load more container
+    const existingContainer = document.getElementById('load-more-container');
+    if (existingContainer) existingContainer.remove();
     
-    if (currentIndex >= totalCount) return;
+    // Create container for button and counter
+    const container = document.createElement('div');
+    container.id = 'load-more-container';
+    container.style.cssText = 'display: flex; justify-content: center; margin: 25px 0 15px; flex-direction: column; align-items: center; gap: 12px;';
     
-    // Show loading indicator (but not for first load since we already showed one)
-    if (!isFirstLoad) {
-        const resultsBox = document.getElementById('results-box');
-        
-        // Remove any existing loading indicator
-        const existingLoader = document.getElementById('loading-indicator');
-        if (existingLoader) existingLoader.remove();
-        
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'loading-message';
-        loadingDiv.id = 'loading-indicator';
-        loadingDiv.innerHTML = '⏳ Loading more prefixes...';
-        resultsBox.appendChild(loadingDiv);
-    }
+    // Add counter with better styling
+    const counter = document.createElement('div');
+    counter.style.cssText = 'color: var(--text-secondary); font-size: 0.9rem; background: var(--bg-tertiary); padding: 4px 12px; border-radius: 20px;';
+    counter.textContent = `📊 ${validResults.length} of ${totalCount} prefixes shown`;
     
-    // Use setTimeout to prevent UI freeze
-    setTimeout(() => {
-        let verified = [];
-        let newIndex = currentIndex;
-        
-        // Keep loading prefixes until we have pageSize valid ones or run out
-        while (verified.length < pageSize && newIndex < allPrefixes.length) {
-            // ... rest of the function
-        }
-        // ... rest of the function
-    }, 10);
+    // Add button with improved styling
+    const button = document.createElement('button');
+    button.className = 'btn btn-search';
+    button.style.cssText = 'width: auto; padding: 10px 40px; font-size: 1rem; transition: all 0.2s ease; position: relative; overflow: hidden;';
+    button.innerHTML = 'Load More <span style="font-size: 1.2rem; margin-left: 4px;">↓</span>';
+    
+    // Add ripple effect on click
+    button.onclick = function(e) {
+        this.disabled = true;
+        this.innerHTML = 'Loading...';
+        this.style.transform = 'scale(0.98)';
+        loadVerifiedResults(false);
+        setTimeout(() => this.style.transform = 'scale(1)', 200);
+    };
+    
+    container.appendChild(counter);
+    container.appendChild(button);
+    resultsBox.appendChild(container);
 }
     
     // Function to display verified results
