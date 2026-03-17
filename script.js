@@ -438,23 +438,6 @@ function createFilterModeUI() {
         </div>
     `;
     
-    // Add active state styling for selected radio
-    const style = document.createElement('style');
-    style.textContent = `
-        #filter-mode-controls label:has(input:checked) {
-            background: var(--text-primary) !important;
-            border-color: var(--text-primary) !important;
-        }
-        #filter-mode-controls label:has(input:checked) span {
-            color: var(--bg-primary) !important;
-        }
-        #filter-mode-controls label:has(input:checked) #mode-max-words-indicator {
-            background: var(--bg-primary) !important;
-            color: var(--text-primary) !important;
-        }
-    `;
-    document.head.appendChild(style);
-    
     // Insert after the existing filters
     const existingFilters = rareSection.querySelector('.search-filters');
     if (existingFilters) {
@@ -469,16 +452,20 @@ function createFilterModeUI() {
     
     modeRadios.forEach(radio => {
         radio.addEventListener('change', function() {
-            // Update label backgrounds
+            // Reset all labels to default state
             document.querySelectorAll('#filter-mode-controls label').forEach(label => {
                 label.style.background = 'var(--bg-tertiary)';
                 label.style.borderColor = 'var(--border-color)';
                 
-                // Reset text colors for non-selected labels
-                const span = label.querySelector('span');
-                if (span) span.style.color = 'var(--text-primary)';
+                // Reset text color
+                const spans = label.querySelectorAll('span');
+                spans.forEach(span => {
+                    if (span.id !== 'mode-max-words-indicator') {
+                        span.style.color = 'var(--text-primary)';
+                    }
+                });
                 
-                // Reset indicator for max-words label
+                // Reset indicator if present
                 const indicator = label.querySelector('#mode-max-words-indicator');
                 if (indicator) {
                     indicator.style.background = 'var(--text-secondary)';
@@ -491,8 +478,13 @@ function createFilterModeUI() {
             selectedLabel.style.background = 'var(--text-primary)';
             selectedLabel.style.borderColor = 'var(--text-primary)';
             
-            const selectedSpan = selectedLabel.querySelector('span');
-            if (selectedSpan) selectedSpan.style.color = 'var(--bg-primary)';
+            // Set text color for selected label
+            const selectedSpans = selectedLabel.querySelectorAll('span');
+            selectedSpans.forEach(span => {
+                if (span.id !== 'mode-max-words-indicator') {
+                    span.style.color = 'var(--bg-primary)';
+                }
+            });
             
             // Style indicator if it's the max-words label
             const selectedIndicator = selectedLabel.querySelector('#mode-max-words-indicator');
@@ -530,8 +522,12 @@ function createFilterModeUI() {
             selectedLabel.style.background = 'var(--text-primary)';
             selectedLabel.style.borderColor = 'var(--text-primary)';
             
-            const selectedSpan = selectedLabel.querySelector('span');
-            if (selectedSpan) selectedSpan.style.color = 'var(--bg-primary)';
+            const selectedSpans = selectedLabel.querySelectorAll('span');
+            selectedSpans.forEach(span => {
+                if (span.id !== 'mode-max-words-indicator') {
+                    span.style.color = 'var(--bg-primary)';
+                }
+            });
             
             const selectedIndicator = selectedLabel.querySelector('#mode-max-words-indicator');
             if (selectedIndicator) {
