@@ -1267,3 +1267,272 @@ document.addEventListener('DOMContentLoaded', () => {
     style.textContent = '.result-word { text-decoration: underline !important; text-underline-offset: 2px; text-decoration-thickness: 1px; text-decoration-color: var(--text-secondary) !important; }';
     document.head.appendChild(style);
 })();
+// ============================================
+// RARE PREFIX FINDER - MODE TOGGLE
+// ============================================
+
+(function() {
+    console.log('🔧 Initializing Mode Toggle & Rare Finder...');
+    
+    let currentMode = 'normal'; // 'normal' or 'rare'
+    
+    // Mode toggle buttons
+    const normalBtn = document.getElementById('mode-normal');
+    const rareBtn = document.getElementById('mode-rare');
+    const normalSortOptions = document.getElementById('normal-sort-options');
+    const rareControls = document.getElementById('rare-controls');
+    const searchBtn = document.getElementById('search-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    
+    // Update button active states
+    function setActiveMode(mode) {
+        currentMode = mode;
+        
+        if (mode === 'normal') {
+            normalBtn.classList.add('mode-active');
+            rareBtn.classList.remove('mode-active');
+            normalSortOptions.style.display = 'flex';
+            rareControls.style.display = 'none';
+            searchBtn.textContent = 'Search';
+        } else {
+            normalBtn.classList.remove('mode-active');
+            rareBtn.classList.add('mode-active');
+            normalSortOptions.style.display = 'none';
+            rareControls.style.display = 'block';
+            searchBtn.textContent = 'Find Rare Prefixes';
+        }
+        
+        // Clear results when switching modes
+        const resultsBox = document.getElementById('results-box');
+        if (resultsBox) {
+            resultsBox.innerHTML = '<p class="placeholder-text">Switch mode and click the button to start...</p>';
+        }
+        
+        // Reset result count
+        const resultCount = document.getElementById('result-count');
+        if (resultCount) resultCount.textContent = '0';
+    }
+    
+    // Add event listeners to mode buttons
+    if (normalBtn && rareBtn) {
+        normalBtn.addEventListener('click', () => setActiveMode('normal'));
+        rareBtn.addEventListener('click', () => setActiveMode('rare'));
+    }
+    
+    // Store original search function
+    const inesBot = document.querySelector('script').__inesBotInstance;
+    
+    // Override search button based on mode
+    if (searchBtn) {
+        const originalClickHandler = searchBtn.click;
+        
+        searchBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Get the searcher instance
+            let searcher = null;
+            for (let key in window) {
+                if (window[key] instanceof InesBotSearcher) {
+                    searcher = window[key];
+                    break;
+                }
+            }
+            
+            if (!searcher) {
+                console.error('Searcher instance not found');
+                return;
+            }
+            
+            if (currentMode === 'normal') {
+                // Normal search
+                searcher.performSearch();
+            } else {
+                // Rare prefix finder
+                performRareSearch(searcher);
+            }
+        });
+    }
+    
+    // Clear button handler
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            // Clear inputs based on mode
+            if (currentMode === 'normal') {
+                document.getElementById('prefix-input').value = '';
+                document.getElementById('suffix-input').value = '';
+                
+                // Reset sort radios
+                document.querySelectorAll('input[name="sort"]').forEach(radio => {
+                    if (radio.value === 'none') radio.checked = true;
+                });
+            } else {
+                // Reset rare finder selects to defaults
+                document.getElementById('rare-prefix-length').value = '3';
+                document.getElementById('rare-max-words').value = '6';
+                document.getElementById('rare-min-words').value = '1';
+                
+                // Reset rare sort
+                document.querySelectorAll('input[name="rare-sort"]').forEach(radio => {
+                    if (radio.value === 'count-asc') radio.checked = true;
+                });
+            }
+            
+            // Clear results
+            const resultsBox = document.getElementById('results-box');
+            if (resultsBox) {
+                resultsBox.innerHTML = '<p class="placeholder-text">Enter criteria and click the button...</p>';
+            }
+            
+            // Reset result count
+            const resultCount = document.getElementById('result-count');
+            if (resultCount) resultCount.textContent = '0';
+        });
+    }
+    
+    // Rare prefix search function
+    function performRareSearch(searcher) {
+        if (!searcher.words || searcher.words.length === 0) {
+            searcher.showError('No words loaded. Please refresh the page.');
+            return;
+        }
+        
+        const prefixLength = parseInt(document.getElementById('rare-prefix-length').value);
+        const maxWords = parseInt(document.getElementById('rare-max-words').value);
+        const minWords = parseInt(document.getElementById('rare-min-words').value);
+        
+        // Get sort option
+        let sortOption = 'count-asc';
+        document.querySelectorAll('input[name="rare-sort"]').forEach(radio => {
+            if (radio.checked) sortOption = radio.value;
+        });
+        
+        // Count prefixes
+        const prefixCounts = new Map();
+        searcher.words.forEach(word => {
+            if (word.length >= prefixLength) {
+                const prefix = word.slice(0, prefixLength).toLowerCase();
+                prefixCounts.set(prefix, (prefixCounts.get(prefix) || 0) + 1);
+            }
+        });
+        
+        // Build results array
+        const rarePrefixes = [];
+        prefixCounts.forEach((count, prefix) => {
+            if (count >= minWords && count <= maxWords) {
+                const examples = searcher.words
+                    .filter(w => w.toLowerCase().startsWith(prefix))
+                    .slice(0, 8);
+                
+                rarePrefixes.push({
+                    prefix: prefix,
+                    count: count,
+                    examples: examples,
+                    allWords: searcher.words.filter(w => w.toLowerCase().startsWith(prefix))
+                });
+            }
+        });
+        
+        // Sort results
+        if (sortOption === 'count-asc') {
+            rarePrefixes.sort((a, b) => a.count - b.count || a.prefix.localeCompare(b.prefix));
+        } else if (sortOption === 'count-desc') {
+            rarePrefixes.sort((a, b) => b.count - a.count || a.prefix.localeCompare(b.prefix));
+        } else if (sortOption === 'alpha') {
+            rarePrefixes.sort((a, b) => a.prefix.localeCompare(b.prefix));
+        }
+        
+        // Update result count
+        const resultCount = document.getElementById('result-count');
+        if (resultCount) resultCount.textContent = rarePrefixes.length;
+        
+        // Display results
+        displayRareResults(rarePrefixes, prefixLength, maxWords, minWords);
+    }
+    
+    // Display rare prefix results
+    function displayRareResults(prefixes, prefixLength, maxWords, minWords) {
+        const resultsBox = document.getElementById('results-box');
+        if (!resultsBox) return;
+        
+        if (prefixes.length === 0) {
+            resultsBox.innerHTML = `
+                <div class="status-message">
+                    No ${prefixLength}-letter prefixes found with ${minWords === 1 ? '1' : minWords + '+'} to ${maxWords} words
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div class="rare-stats">
+                Found ${prefixes.length} rare ${prefixLength}-letter prefixes 
+                (${minWords === 1 ? '1' : minWords + '+'} to ${maxWords} words)
+            </div>
+        `;
+        
+        prefixes.forEach((item, index) => {
+            const exampleText = item.examples.slice(0, 3).join(', ');
+            const moreCount = item.allWords.length - item.examples.length;
+            
+            html += `
+                <div class="rare-prefix-item">
+                    <div class="rare-prefix-header">
+                        <span class="rare-prefix-badge">${item.count} words</span>
+                        <span class="rare-prefix-value">"${item.prefix}"</span>
+                        <span class="rare-prefix-toggle" onclick="toggleRareWords(this)">
+                            📋 Show words
+                        </span>
+                    </div>
+                    <div class="rare-prefix-words">
+                        ${item.allWords.map(w => `<span>${w}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        });
+        
+        resultsBox.innerHTML = html;
+    }
+    
+    // Make toggle function global
+    window.toggleRareWords = function(element) {
+        const wordsDiv = element.closest('.rare-prefix-item').querySelector('.rare-prefix-words');
+        if (wordsDiv) {
+            wordsDiv.classList.toggle('show');
+            element.textContent = wordsDiv.classList.contains('show') ? '🔽 Hide words' : '📋 Show words';
+        }
+    };
+    
+    // Store searcher instance for later use
+    setTimeout(() => {
+        for (let key in window) {
+            if (window[key] instanceof InesBotSearcher) {
+                window.inesBotSearcher = window[key];
+                break;
+            }
+        }
+    }, 500);
+    
+    // Add Enter key support for rare mode
+    const prefixInput = document.getElementById('prefix-input');
+    const suffixInput = document.getElementById('suffix-input');
+    
+    if (prefixInput) {
+        prefixInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && currentMode === 'rare') {
+                e.preventDefault();
+                searchBtn.click();
+            }
+        });
+    }
+    
+    if (suffixInput) {
+        suffixInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && currentMode === 'rare') {
+                e.preventDefault();
+                searchBtn.click();
+            }
+        });
+    }
+    
+    console.log('✅ Mode Toggle & Rare Finder Ready!');
+})();
