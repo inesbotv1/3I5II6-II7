@@ -510,16 +510,16 @@ function makeWordsClickable() {
                 ? '<span style="background:#4CAF50; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">word</span>' 
                 : '<span style="background:#FF9800; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">ends with</span>';
             
+            const wordsData = JSON.stringify(r.words);
+            
             html += `
                 <div class="rare-prefix-item">
                     <div class="rare-prefix-header">
                         <span class="rare-prefix-badge">${r.count} words</span>
                         <span class="rare-prefix-value">"${r.prefix}" ${badge}</span>
-                        <span class="rare-prefix-toggle" onclick="toggleWords(this)">Show</span>
+                        <span class="rare-prefix-toggle" onclick="toggleWords(this, '${wordsData.replace(/'/g, "\\'")}')">📋 Show</span>
                     </div>
-                    <div class="rare-prefix-words" style="display:none; margin-top:10px; padding:10px; background:var(--bg-tertiary); border-radius:4px;">
-                        ${r.words.map(w => `<span style="display:inline-block; background:var(--bg-secondary); padding:2px 8px; margin:2px; border-radius:4px;">${w}</span>`).join('')}
-                    </div>
+                    <div class="rare-prefix-words" style="display:none; margin-top:10px; padding:10px; background:var(--bg-tertiary); border-radius:4px;"></div>
                 </div>
             `;
         });
@@ -527,15 +527,35 @@ function makeWordsClickable() {
         resultsBox.innerHTML = html;
     }
     
-    window.toggleWords = function(element) {
-        const wordsDiv = element.closest('.rare-prefix-item').querySelector('.rare-prefix-words');
-        if (wordsDiv.style.display === 'none') {
-            wordsDiv.style.display = 'block';
-            element.textContent = 'Hide';
-        } else {
-            wordsDiv.style.display = 'none';
-            element.textContent = 'Show';
+    window.toggleWords = function(element, wordsData) {
+        const currentItem = element.closest('.rare-prefix-item');
+        const currentWordsDiv = currentItem.querySelector('.rare-prefix-words');
+        const allItems = document.querySelectorAll('.rare-prefix-item');
+        
+        if (currentWordsDiv.style.display === 'block') {
+            currentWordsDiv.style.display = 'none';
+            currentWordsDiv.innerHTML = '';
+            element.textContent = '📋 Show';
+            return;
         }
+        
+        allItems.forEach(item => {
+            const wordsDiv = item.querySelector('.rare-prefix-words');
+            const toggleBtn = item.querySelector('.rare-prefix-toggle');
+            if (wordsDiv.style.display === 'block') {
+                wordsDiv.style.display = 'none';
+                wordsDiv.innerHTML = '';
+                toggleBtn.textContent = '📋 Show';
+            }
+        });
+        
+        const words = JSON.parse(wordsData);
+        currentWordsDiv.innerHTML = words.map(w => 
+            `<span style="display:inline-block; background:var(--bg-secondary); padding:2px 8px; margin:2px; border-radius:4px;">${w}</span>`
+        ).join('');
+        
+        currentWordsDiv.style.display = 'block';
+        element.textContent = '🔽 Hide';
     };
     
     // Set up max words dropdown
