@@ -518,7 +518,7 @@ function displayResults(results, prefixFilter, prefixLength, maxWords, wordSet) 
                 <div class="rare-prefix-header">
                     <span class="rare-prefix-badge">${r.count} words</span>
                     <span class="rare-prefix-value">"${r.prefix}" ${badge}</span>
-                    <span class="rare-prefix-toggle" onclick="toggleWords(this)">📋 Show</span>
+                    <span class="rare-prefix-toggle" onclick="toggleWords(this)">Show</span>
                 </div>
                 <div class="rare-prefix-words" style="display:none; margin-top:10px; padding:10px; background:var(--bg-tertiary); border-radius:4px;"></div>
             </div>
@@ -537,7 +537,7 @@ window.toggleWords = function(element) {
     if (currentWordsDiv.style.display === 'block') {
         currentWordsDiv.style.display = 'none';
         currentWordsDiv.innerHTML = '';
-        element.textContent = '📋 Show';
+        element.textContent = 'Show';
         return;
     }
     
@@ -547,7 +547,7 @@ window.toggleWords = function(element) {
         if (wordsDiv.style.display === 'block') {
             wordsDiv.style.display = 'none';
             wordsDiv.innerHTML = '';
-            toggleBtn.textContent = '📋 Show';
+            toggleBtn.textContent = 'Show';
         }
     });
     
@@ -557,7 +557,7 @@ window.toggleWords = function(element) {
     ).join('');
     
     currentWordsDiv.style.display = 'block';
-    element.textContent = '🔽 Hide';
+    element.textContent = 'Hide';
 };
     
     // Set up max words dropdown
