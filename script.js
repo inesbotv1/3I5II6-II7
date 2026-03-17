@@ -404,68 +404,102 @@ function makeWordsClickable() {
         }
     }
     
-    // NEW: Create the filter mode UI
-    function createFilterModeUI() {
-        const rareSection = document.getElementById('rare-finder-section');
-        if (!rareSection) return;
-        
-        // Check if controls already exist
-        if (document.getElementById('filter-mode-controls')) return;
-        
-        // Create filter mode controls
-        const filterControls = document.createElement('div');
-        filterControls.id = 'filter-mode-controls';
-        filterControls.style.margin = '15px 0';
-        filterControls.style.padding = '10px';
-        filterControls.style.background = 'var(--bg-secondary)';
-        filterControls.style.borderRadius = '4px';
-        filterControls.innerHTML = `
-            <div style="margin-bottom: 8px; font-weight: bold;">Filter Mode:</div>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                    <input type="radio" name="filter-mode" value="max-words" checked> 
-                    <span>Max Words: <span id="mode-max-words-indicator">2</span></span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                    <input type="radio" name="filter-mode" value="longer-than"> 
-                    <span>Longer Than 6 Letters</span>
-                </label>
-            </div>
-        `;
-        
-        // Insert after the existing filters
-        const existingFilters = rareSection.querySelector('.search-filters');
-        if (existingFilters) {
-            existingFilters.parentNode.insertBefore(filterControls, existingFilters.nextSibling);
-        } else {
-            rareSection.insertBefore(filterControls, document.getElementById('rare-search-btn').parentNode);
+ // NEW: Create the filter mode UI - IMPROVED DESIGN
+function createFilterModeUI() {
+    const rareSection = document.getElementById('rare-finder-section');
+    if (!rareSection) return;
+    
+    // Check if controls already exist
+    if (document.getElementById('filter-mode-controls')) return;
+    
+    // Create filter mode controls with better styling
+    const filterControls = document.createElement('div');
+    filterControls.id = 'filter-mode-controls';
+    filterControls.style.margin = '20px 0';
+    filterControls.style.padding = '15px';
+    filterControls.style.background = 'var(--bg-secondary)';
+    filterControls.style.borderRadius = '8px';
+    filterControls.style.border = '1px solid var(--border-color)';
+    filterControls.innerHTML = `
+        <div style="margin-bottom: 12px; font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">Filter Mode:</div>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); transition: all 0.2s ease;" 
+                   onmouseover="this.style.background='var(--bg-hover)'" 
+                   onmouseout="this.style.background='var(--bg-tertiary)'">
+                <input type="radio" name="filter-mode" value="max-words" checked style="accent-color: var(--primary-color); width: 16px; height: 16px; margin: 0;"> 
+                <span style="font-weight: 500;">Max Words: <span id="mode-max-words-indicator" style="background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 20px; margin-left: 4px;">2</span></span>
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); transition: all 0.2s ease;"
+                   onmouseover="this.style.background='var(--bg-hover)'" 
+                   onmouseout="this.style.background='var(--bg-tertiary)'">
+                <input type="radio" name="filter-mode" value="longer-than" style="accent-color: var(--primary-color); width: 16px; height: 16px; margin: 0;"> 
+                <span style="font-weight: 500;">Longer Than 6 Letters</span>
+            </label>
+        </div>
+    `;
+    
+    // Add active state styling for selected radio
+    const style = document.createElement('style');
+    style.textContent = `
+        #filter-mode-controls input[type="radio"]:checked + span {
+            color: var(--primary-color);
         }
-        
-        // Add event listeners to radio buttons
-        const modeRadios = document.querySelectorAll('input[name="filter-mode"]');
-        const maxWordsSelect = document.getElementById('rare-max-words');
-        
-        modeRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'max-words') {
-                    // Enable max words select
-                    maxWordsSelect.disabled = false;
-                    maxWordsSelect.style.opacity = '1';
-                    // Update indicator
-                    document.getElementById('mode-max-words-indicator').textContent = maxWordsSelect.value;
-                } else {
-                    // Disable max words select
-                    maxWordsSelect.disabled = true;
-                    maxWordsSelect.style.opacity = '0.5';
-                }
-            });
-        });
-        
-        // Update indicator when max words changes
-        maxWordsSelect.addEventListener('change', function() {
-            document.getElementById('mode-max-words-indicator').textContent = this.value;
-        });
+        #filter-mode-controls label:has(input:checked) {
+            background: var(--primary-color-light);
+            border-color: var(--primary-color);
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Insert after the existing filters
+    const existingFilters = rareSection.querySelector('.search-filters');
+    if (existingFilters) {
+        existingFilters.parentNode.insertBefore(filterControls, existingFilters.nextSibling);
+    } else {
+        rareSection.insertBefore(filterControls, document.getElementById('rare-search-btn').parentNode);
     }
+    
+    // Add event listeners to radio buttons
+    const modeRadios = document.querySelectorAll('input[name="filter-mode"]');
+    const maxWordsSelect = document.getElementById('rare-max-words');
+    
+    modeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Update label backgrounds
+            document.querySelectorAll('#filter-mode-controls label').forEach(label => {
+                label.style.background = 'var(--bg-tertiary)';
+            });
+            this.closest('label').style.background = 'var(--primary-color-light)';
+            
+            if (this.value === 'max-words') {
+                // Enable max words select
+                maxWordsSelect.disabled = false;
+                maxWordsSelect.style.opacity = '1';
+                maxWordsSelect.style.pointerEvents = 'auto';
+                // Update indicator
+                document.getElementById('mode-max-words-indicator').textContent = maxWordsSelect.value;
+            } else {
+                // Disable max words select
+                maxWordsSelect.disabled = true;
+                maxWordsSelect.style.opacity = '0.5';
+                maxWordsSelect.style.pointerEvents = 'none';
+            }
+        });
+    });
+    
+    // Update indicator when max words changes
+    maxWordsSelect.addEventListener('change', function() {
+        document.getElementById('mode-max-words-indicator').textContent = this.value;
+    });
+    
+    // Set initial state
+    setTimeout(() => {
+        const checkedRadio = document.querySelector('input[name="filter-mode"]:checked');
+        if (checkedRadio) {
+            checkedRadio.closest('label').style.background = 'var(--primary-color-light)';
+        }
+    }, 50);
+}
     
     // Call this after DOM is ready
     setTimeout(createFilterModeUI, 100);
