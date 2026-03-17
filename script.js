@@ -601,22 +601,31 @@ function createFilterModeUI() {
                     }
                 });
 } else {
-    // OPTIMIZED: Longer Than 6 Letters mode
-    // First, create a set of prefixes that have at least one long word
-    const longWordPrefixes = new Set();
+    // OPTIMIZED: Longer Than 6 Letters mode - ALL words must be >6 letters
+    // First, group words by their prefix
+    const wordsByPrefix = new Map();
     
-    // Only loop through words once instead of for each prefix
+    // Group all words by their prefix
     for (let word of rareWords) {
-        if (word.length > 6 && word.length >= prefixLength) {
+        if (word.length >= prefixLength) {
             const prefix = word.slice(0, prefixLength).toLowerCase();
-            longWordPrefixes.add(prefix);
+            if (!wordsByPrefix.has(prefix)) {
+                wordsByPrefix.set(prefix, []);
+            }
+            wordsByPrefix.get(prefix).push(word);
         }
     }
     
-    // Now filter the prefixCounts using our pre-computed set
-    prefixCounts.forEach((count, prefix) => {
-        if (count >= 2 && longWordPrefixes.has(prefix)) {
-            validPrefixes.push({ prefix, count });
+    // Now check each prefix that has at least 2 words
+    wordsByPrefix.forEach((words, prefix) => {
+        if (words.length >= 2) {
+            // Check if ALL words for this prefix are longer than 6 letters
+            const allWordsLong = words.every(word => word.length > 6);
+            
+            if (allWordsLong) {
+                // Count is the number of words for this prefix
+                validPrefixes.push({ prefix, count: words.length });
+            }
         }
     });
 }
