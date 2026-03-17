@@ -794,7 +794,7 @@ html.theme-transitioning * {
 }
 /* Mode Toggle Styles */
 .mode-toggle-container {
-    margin-bottom: 20px;
+    margin: 20px 0;
     padding: 15px;
     background: var(--bg-accent);
     border-radius: 8px;
@@ -838,17 +838,12 @@ html.theme-transitioning * {
     background: var(--button-primary);
 }
 
-/* Rare Controls Styles */
-.rare-controls {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: var(--bg-accent);
-    border-radius: 8px;
-    border: 1px solid var(--border-primary);
+/* Rare Finder Section */
+#rare-finder-section {
     animation: fadeIn 0.3s ease;
 }
 
-.rare-controls-grid {
+.rare-filters {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
@@ -856,19 +851,14 @@ html.theme-transitioning * {
 }
 
 .rare-sort-options {
-    padding: 12px;
-    background: var(--bg-tertiary);
-    border-radius: 6px;
+    padding: 15px;
+    background: var(--bg-accent);
+    border-radius: 8px;
     border: 1px solid var(--border-primary);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 15px;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Rare Prefix Results Styling */
@@ -914,10 +904,11 @@ html.theme-transitioning * {
     margin-left: auto;
     color: var(--text-secondary);
     cursor: pointer;
-    padding: 5px 10px;
+    padding: 5px 12px;
     border-radius: 4px;
     font-size: 0.9em;
     transition: all 0.2s ease;
+    border: 1px solid var(--border-secondary);
 }
 
 .rare-prefix-toggle:hover {
@@ -943,8 +934,8 @@ html.theme-transitioning * {
     display: inline-block;
     background: var(--bg-secondary);
     color: var(--text-primary);
-    padding: 3px 10px;
-    margin: 3px;
+    padding: 4px 12px;
+    margin: 4px;
     border-radius: 4px;
     font-size: 0.9em;
     border: 1px solid var(--border-secondary);
@@ -952,13 +943,18 @@ html.theme-transitioning * {
 
 .rare-stats {
     background: var(--highlight-bg);
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
     color: var(--text-primary);
     font-weight: 500;
     border: 1px solid var(--border-primary);
     text-align: center;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Mobile Responsive */
@@ -967,7 +963,7 @@ html.theme-transitioning * {
         flex-direction: column;
     }
     
-    .rare-controls-grid {
+    .rare-filters {
         grid-template-columns: 1fr;
         gap: 10px;
     }
@@ -980,6 +976,7 @@ html.theme-transitioning * {
     .rare-prefix-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 10px;
     }
     
     .rare-prefix-toggle {
