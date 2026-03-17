@@ -404,7 +404,7 @@ function makeWordsClickable() {
         }
     }
     
-    // NEW: Create the filter mode UI (nicer version)
+    // Create the filter mode UI (nicer version)
     function createFilterModeUI() {
         const rareSection = document.getElementById('rare-finder-section');
         if (!rareSection) return;
@@ -412,25 +412,26 @@ function makeWordsClickable() {
         // Check if controls already exist
         if (document.getElementById('filter-mode-container')) return;
         
-        // Find the sort container to copy its style
-        const sortContainer = document.querySelector('.sort-container');
-        if (!sortContainer) return;
-        
-        // Create filter mode container with same styling as sort container
+        // Create filter mode container
         const filterContainer = document.createElement('div');
         filterContainer.id = 'filter-mode-container';
-        filterContainer.className = 'sort-container'; // Reuse the same class for styling
-        filterContainer.style.marginTop = '10px';
-        filterContainer.style.marginBottom = '15px';
+        filterContainer.style.margin = '15px 0';
+        filterContainer.style.padding = '10px';
+        filterContainer.style.background = 'var(--bg-secondary)';
+        filterContainer.style.borderRadius = '4px';
+        filterContainer.style.display = 'flex';
+        filterContainer.style.alignItems = 'center';
+        filterContainer.style.flexWrap = 'wrap';
+        filterContainer.style.gap = '15px';
         
         filterContainer.innerHTML = `
-            <span class="sort-label">Filter mode:</span>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-left: 10px;">
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" class="sort-option">
+            <span style="font-weight: bold; color: var(--text-primary);">Filter mode:</span>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; padding: 5px 10px; background: var(--bg-primary); border-radius: 4px;">
                     <input type="radio" name="filter-mode" value="max-words" checked> 
-                    <span>Max Words: <span id="mode-max-words-indicator" style="font-weight: bold; color: var(--accent);">2</span></span>
+                    <span>Max Words: <span id="mode-max-words-indicator" style="font-weight: bold; color: #4CAF50;">2</span></span>
                 </label>
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;" class="sort-option">
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; padding: 5px 10px; background: var(--bg-primary); border-radius: 4px;">
                     <input type="radio" name="filter-mode" value="longer-than"> 
                     <span>Longer Than 6 Letters</span>
                 </label>
@@ -471,10 +472,7 @@ function makeWordsClickable() {
         });
     }
     
-    // Call this after DOM is ready
-    setTimeout(createFilterModeUI, 100);
-    
-    // search button - DROPDOWN LOADING VERSION
+    // search button 
     document.getElementById('rare-search-btn')?.addEventListener('click', () => {
         if (rareWords.length === 0) {
             if (isLoading) {
@@ -568,7 +566,7 @@ function makeWordsClickable() {
                 filterMode,
                 wordSet,
                 allPrefixes: validPrefixes,
-                loadedPages: 0, // Track how many pages we've loaded
+                loadedPages: 0,
                 pageSize: 10,
                 totalCount: validPrefixes.length,
                 sortOption
@@ -577,39 +575,67 @@ function makeWordsClickable() {
             // Update result count
             document.getElementById('result-count').textContent = validPrefixes.length;
             
-            // Clear results box and start with first page
-            document.getElementById('results-box').innerHTML = '';
+            // Clear results box
+            const resultsBox = document.getElementById('results-box');
+            resultsBox.innerHTML = '';
+            
+            // Add stats header
+            if (validPrefixes.length > 0) {
+                let modeDescription = '';
+                if (filterMode === 'max-words') {
+                    modeDescription = `2-${maxWords} words`;
+                } else {
+                    modeDescription = `words longer than 6 letters`;
+                }
+                
+                const statsDiv = document.createElement('div');
+                statsDiv.className = 'rare-stats';
+                statsDiv.id = 'rare-stats-header';
+                statsDiv.style.marginBottom = '15px';
+                statsDiv.style.padding = '10px';
+                statsDiv.style.background = 'var(--bg-secondary)';
+                statsDiv.style.borderRadius = '4px';
+                statsDiv.innerHTML = `<strong>Found ${validPrefixes.length} prefixes</strong> with ${modeDescription}`;
+                resultsBox.appendChild(statsDiv);
+            }
             
             // Load first page
-            loadMorePrefixes();
+            if (validPrefixes.length > 0) {
+                loadMorePrefixes();
+            } else {
+                let message = '';
+                if (filterMode === 'max-words') {
+                    message = `No ${prefixLength}-letter prefixes with 2-${maxWords} words found`;
+                } else {
+                    message = `No ${prefixLength}-letter prefixes with words longer than 6 letters found`;
+                }
+                resultsBox.innerHTML = `<div class="status-message" style="padding: 20px; text-align: center;">${message}</div>`;
+            }
+            
         }, 10);
     });
     
-    // NEW: Load more prefixes (dropdown style - appends to existing)
+    // Load more prefixes (dropdown style - appends to existing)
     function loadMorePrefixes() {
         if (!searchState) return;
         
-        const { allPrefixes, loadedPages, pageSize, wordSet, filterMode, maxWords, prefixLength } = searchState;
-        
-        // Check if we've loaded all
-        if (loadedPages * pageSize >= allPrefixes.length) {
-            // Show "no more" message
-            const resultsBox = document.getElementById('results-box');
-            if (!resultsBox.querySelector('.no-more-message')) {
-                const noMoreMsg = document.createElement('div');
-                noMoreMsg.className = 'no-more-message';
-                noMoreMsg.style.textAlign = 'center';
-                noMoreMsg.style.padding = '20px';
-                noMoreMsg.style.color = 'var(--text-secondary)';
-                noMoreMsg.style.fontStyle = 'italic';
-                noMoreMsg.textContent = '🏁 No more prefixes to load';
-                resultsBox.appendChild(noMoreMsg);
-            }
-            return;
-        }
-        
-        // Show loading indicator at bottom
+        const { allPrefixes, loadedPages, pageSize, wordSet } = searchState;
         const resultsBox = document.getElementById('results-box');
+        
+        // Remove any existing load more button or no more message
+        const existingLoadMore = document.querySelector('.load-more-container');
+        const existingNoMore = document.querySelector('.no-more-message');
+        if (existingLoadMore) existingLoadMore.remove();
+        if (existingNoMore) existingNoMore.remove();
+        
+        // Calculate page range
+        const start = loadedPages * pageSize;
+        const end = Math.min(start + pageSize, allPrefixes.length);
+        const pagePrefixes = allPrefixes.slice(start, end);
+        
+        if (pagePrefixes.length === 0) return;
+        
+        // Show loading indicator
         const loadingDiv = document.createElement('div');
         loadingDiv.className = 'loading-more';
         loadingDiv.style.textAlign = 'center';
@@ -625,26 +651,20 @@ function makeWordsClickable() {
             // Remove loading indicator
             loadingDiv.remove();
             
-            // Calculate page range
-            const start = loadedPages * pageSize;
-            const end = Math.min(start + pageSize, allPrefixes.length);
-            const pagePrefixes = allPrefixes.slice(start, end);
-            
             // Process current batch of prefixes
-            const results = pagePrefixes.map(p => {
+            pagePrefixes.forEach(p => {
                 // Get words for this prefix
                 const words = [];
                 for (let w of rareWords) {
                     if (w.toLowerCase().startsWith(p.prefix)) {
                         words.push(w);
-                        if (words.length === p.count) break; // Early exit once we have all
+                        if (words.length === p.count) break;
                     }
                 }
                 
                 // Quick validity check
-                let isValid = wordSet.has(p.prefix);
+                let isValid = searchState.wordSet.has(p.prefix);
                 if (!isValid) {
-                    // Check if prefix appears as ending
                     for (let word of rareWords) {
                         if (word.length > p.prefix.length && word.toLowerCase().endsWith(p.prefix)) {
                             isValid = true;
@@ -653,62 +673,55 @@ function makeWordsClickable() {
                     }
                 }
                 
-                return isValid ? {
-                    prefix: p.prefix,
-                    count: p.count,
-                    words: words
-                } : null;
-            }).filter(r => r !== null);
-            
-            // Update stats header if this is first page
-            if (loadedPages === 0) {
-                let modeDescription = '';
-                if (filterMode === 'max-words') {
-                    modeDescription = `2-${maxWords} words`;
-                } else {
-                    modeDescription = `words longer than 6 letters`;
+                if (isValid) {
+                    const isWord = searchState.wordSet.has(p.prefix);
+                    const badge = isWord 
+                        ? '<span style="background:#4CAF50; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">word</span>' 
+                        : '<span style="background:#FF9800; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">ends with</span>';
+                    
+                    const wordsData = encodeURIComponent(JSON.stringify(words));
+                    
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'rare-prefix-item';
+                    itemDiv.setAttribute('data-words', wordsData);
+                    itemDiv.style.marginBottom = '10px';
+                    itemDiv.style.border = '1px solid var(--border-color)';
+                    itemDiv.style.borderRadius = '4px';
+                    itemDiv.style.overflow = 'hidden';
+                    
+                    itemDiv.innerHTML = `
+                        <div class="rare-prefix-header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg-secondary); cursor: pointer;" onclick="event.stopPropagation(); window.toggleWords(this.parentNode.querySelector('.rare-prefix-toggle'))">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="rare-prefix-badge" style="background: var(--accent); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">${p.count} words</span>
+                                <span class="rare-prefix-value" style="font-weight: bold;">"${p.prefix}" ${badge}</span>
+                            </div>
+                            <span class="rare-prefix-toggle" style="color: var(--accent); cursor: pointer; padding: 5px 10px;" onclick="event.stopPropagation(); window.toggleWords(this)">Show</span>
+                        </div>
+                        <div class="rare-prefix-words" style="display:none; padding: 15px; background: var(--bg-tertiary); border-top: 1px solid var(--border-color);"></div>
+                    `;
+                    
+                    resultsBox.appendChild(itemDiv);
                 }
-                
-                const statsDiv = document.createElement('div');
-                statsDiv.className = 'rare-stats';
-                statsDiv.id = 'rare-stats-header';
-                statsDiv.innerHTML = `Found ${allPrefixes.length} prefixes with ${modeDescription}`;
-                resultsBox.appendChild(statsDiv);
-            }
-            
-            // Append results
-            results.forEach(r => {
-                const isWord = wordSet.has(r.prefix);
-                const badge = isWord 
-                    ? '<span style="background:#4CAF50; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">word</span>' 
-                    : '<span style="background:#FF9800; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">ends with</span>';
-                
-                const wordsData = encodeURIComponent(JSON.stringify(r.words));
-                
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'rare-prefix-item';
-                itemDiv.setAttribute('data-words', wordsData);
-                itemDiv.innerHTML = `
-                    <div class="rare-prefix-header">
-                        <span class="rare-prefix-badge">${r.count} words</span>
-                        <span class="rare-prefix-value">"${r.prefix}" ${badge}</span>
-                        <span class="rare-prefix-toggle" onclick="window.toggleWords(this)">Show</span>
-                    </div>
-                    <div class="rare-prefix-words" style="display:none; margin-top:10px; padding:10px; background:var(--bg-tertiary); border-radius:4px;"></div>
-                `;
-                resultsBox.appendChild(itemDiv);
             });
             
+            // Update loaded pages count
+            searchState.loadedPages++;
+            
             // Add "Load More" button if there are more
-            if (end < allPrefixes.length) {
+            const nextStart = searchState.loadedPages * pageSize;
+            if (nextStart < allPrefixes.length) {
                 const loadMoreDiv = document.createElement('div');
                 loadMoreDiv.className = 'load-more-container';
                 loadMoreDiv.style.textAlign = 'center';
                 loadMoreDiv.style.margin = '20px 0';
                 loadMoreDiv.style.padding = '10px';
+                
+                const remainingCount = allPrefixes.length - nextStart;
+                const nextBatchSize = Math.min(pageSize, remainingCount);
+                
                 loadMoreDiv.innerHTML = `
-                    <button class="btn btn-search" onclick="window.loadMorePrefixes()" style="width: auto; padding: 8px 20px;">
-                        Load Next ${Math.min(pageSize, allPrefixes.length - end)} Prefixes ▼
+                    <button class="btn btn-search" onclick="window.loadMorePrefixes()" style="width: auto; padding: 10px 25px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1em;">
+                        Load Next ${nextBatchSize} Prefixes (${remainingCount} remaining) ▼
                     </button>
                 `;
                 resultsBox.appendChild(loadMoreDiv);
@@ -720,12 +733,12 @@ function makeWordsClickable() {
                 finishedDiv.style.padding = '20px';
                 finishedDiv.style.color = 'var(--text-secondary)';
                 finishedDiv.style.fontStyle = 'italic';
-                finishedDiv.textContent = '🏁 All prefixes loaded';
+                finishedDiv.style.background = 'var(--bg-secondary)';
+                finishedDiv.style.borderRadius = '4px';
+                finishedDiv.style.margin = '10px 0';
+                finishedDiv.innerHTML = '🏁 All ${allPrefixes.length} prefixes loaded';
                 resultsBox.appendChild(finishedDiv);
             }
-            
-            // Update loaded pages count
-            searchState.loadedPages++;
             
         }, 10);
     }
@@ -733,7 +746,7 @@ function makeWordsClickable() {
     // Make loadMorePrefixes available globally
     window.loadMorePrefixes = loadMorePrefixes;
     
-    // clear button - UPDATED
+    // clear button 
     document.getElementById('rare-clear-btn')?.addEventListener('click', () => {
         document.getElementById('rare-prefix').value = '';
         document.getElementById('rare-prefix-length').value = '3';
@@ -749,9 +762,9 @@ function makeWordsClickable() {
         }
         
         document.querySelectorAll('input[name="rare-sort"]')[0].checked = true;
-        document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Filters cleared</p>';
+        document.getElementById('results-box').innerHTML = '<p class="placeholder-text" style="padding: 20px; text-align: center; color: var(--text-secondary);">Filters cleared</p>';
         document.getElementById('result-count').textContent = '0';
-        searchState = null; // Clear search state
+        searchState = null;
     });
     
     // enter key
@@ -759,9 +772,11 @@ function makeWordsClickable() {
         if (e.key === 'Enter') document.getElementById('rare-search-btn').click();
     });
     
-    // toggleWords - made more efficient
+    // toggleWords function
     window.toggleWords = function(element) {
         const currentItem = element.closest('.rare-prefix-item');
+        if (!currentItem) return;
+        
         const currentWordsDiv = currentItem.querySelector('.rare-prefix-words');
         const allItems = document.querySelectorAll('.rare-prefix-item');
         const wordsData = currentItem.getAttribute('data-words');
@@ -773,42 +788,51 @@ function makeWordsClickable() {
             return;
         }
         
-        // Close others efficiently
-        for (let item of allItems) {
+        // Close others
+        allItems.forEach(item => {
             if (item !== currentItem) {
                 const wordsDiv = item.querySelector('.rare-prefix-words');
                 const toggleBtn = item.querySelector('.rare-prefix-toggle');
-                if (wordsDiv.style.display === 'block') {
+                if (wordsDiv && wordsDiv.style.display === 'block') {
                     wordsDiv.style.display = 'none';
                     wordsDiv.innerHTML = '';
-                    toggleBtn.textContent = 'Show';
+                    if (toggleBtn) toggleBtn.textContent = 'Show';
                 }
             }
-        }
+        });
         
         // Parse and display words
-        const words = JSON.parse(decodeURIComponent(wordsData));
-        currentWordsDiv.innerHTML = words.map(w => 
-            `<span style="display:inline-block; background:var(--bg-secondary); padding:2px 8px; margin:2px; border-radius:4px;">${w}</span>`
-        ).join('');
-        
-        currentWordsDiv.style.display = 'block';
-        element.textContent = 'Hide';
+        try {
+            const words = JSON.parse(decodeURIComponent(wordsData));
+            currentWordsDiv.innerHTML = words.map(w => 
+                `<span style="display:inline-block; background:var(--bg-secondary); padding:4px 10px; margin:3px; border-radius:4px; border:1px solid var(--border-color);">${w}</span>`
+            ).join('');
+            
+            currentWordsDiv.style.display = 'block';
+            element.textContent = 'Hide';
+        } catch (e) {
+            console.error('Error parsing words data:', e);
+        }
     };
     
-    // da dropdown
-    const maxSelect = document.getElementById('rare-max-words');
-    if (maxSelect) {
-        maxSelect.innerHTML = `
-            <option value="2" selected>2 words</option>
-            <option value="3">3 words</option>
-            <option value="4">4 words</option>
-            <option value="5">5 words</option>
-            <option value="6">6 words</option>
-            <option value="7">7 words</option>
-            <option value="8">8 words</option>
-            <option value="9">9 words</option>
-            <option value="10">10 words</option>
-        `;
-    }
+    // Initialize everything when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        createFilterModeUI();
+        
+        // da dropdown
+        const maxSelect = document.getElementById('rare-max-words');
+        if (maxSelect) {
+            maxSelect.innerHTML = `
+                <option value="2" selected>2 words</option>
+                <option value="3">3 words</option>
+                <option value="4">4 words</option>
+                <option value="5">5 words</option>
+                <option value="6">6 words</option>
+                <option value="7">7 words</option>
+                <option value="8">8 words</option>
+                <option value="9">9 words</option>
+                <option value="10">10 words</option>
+            `;
+        }
+    });
 })();
