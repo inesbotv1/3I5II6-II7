@@ -358,13 +358,15 @@ function makeWordsClickable() {
     const rareSection = document.getElementById('rare-finder-section');
     const searchFilters = document.querySelector('.search-filters');
     
-// mode switching with separate state
+// mode switching with separate state INCLUDING RESULTS
 if (normalBtn && rareBtn && normalSection && rareSection) {
     // Store values for each mode
     let normalState = {
         prefix: '',
         suffix: '',
-        sort: 'none'
+        sort: 'none',
+        results: '<p class="placeholder-text">Enter search criteria and click Search...</p>',
+        resultCount: '0'
     };
     
     let rareState = {
@@ -372,17 +374,21 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
         prefixLength: '2',
         maxWords: '2',
         filterMode: 'max-words',
-        sort: 'count-asc'
+        sort: 'count-asc',
+        results: '<p class="placeholder-text">Click Search to find rare prefixes</p>',
+        resultCount: '0'
     };
     
     normalBtn.addEventListener('click', () => {
-        // Save rare state before switching
+        // Save rare state before switching (including results)
         rareState = {
             prefix: document.getElementById('rare-prefix').value,
             prefixLength: document.getElementById('rare-prefix-length').value,
             maxWords: document.getElementById('rare-max-words').value,
             filterMode: document.querySelector('input[name="filter-mode"]:checked')?.value || 'max-words',
-            sort: document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc'
+            sort: document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc',
+            results: document.getElementById('results-box').innerHTML,
+            resultCount: document.getElementById('result-count').textContent
         };
         
         // Restore normal state
@@ -393,6 +399,10 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
             if (radio.value === normalState.sort) radio.checked = true;
         });
         
+        // Restore normal results
+        document.getElementById('results-box').innerHTML = normalState.results;
+        document.getElementById('result-count').textContent = normalState.resultCount;
+        
         normalBtn.classList.add('mode-active');
         rareBtn.classList.remove('mode-active');
         normalSection.style.display = 'block';
@@ -401,11 +411,13 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
     });
     
     rareBtn.addEventListener('click', () => {
-        // Save normal state before switching
+        // Save normal state before switching (including results)
         normalState = {
             prefix: document.getElementById('prefix-input').value,
             suffix: document.getElementById('suffix-input').value,
-            sort: document.querySelector('input[name="sort"]:checked')?.value || 'none'
+            sort: document.querySelector('input[name="sort"]:checked')?.value || 'none',
+            results: document.getElementById('results-box').innerHTML,
+            resultCount: document.getElementById('result-count').textContent
         };
         
         // Restore rare state
@@ -417,13 +429,16 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
         const filterRadio = document.querySelector(`input[name="filter-mode"][value="${rareState.filterMode}"]`);
         if (filterRadio) {
             filterRadio.checked = true;
-            // Trigger the change event to update UI
             filterRadio.dispatchEvent(new Event('change'));
         }
         
         // Restore sort radio
         const sortRadio = document.querySelector(`input[name="rare-sort"][value="${rareState.sort}"]`);
         if (sortRadio) sortRadio.checked = true;
+        
+        // Restore rare results
+        document.getElementById('results-box').innerHTML = rareState.results;
+        document.getElementById('result-count').textContent = rareState.resultCount;
         
         normalBtn.classList.remove('mode-active');
         rareBtn.classList.add('mode-active');
