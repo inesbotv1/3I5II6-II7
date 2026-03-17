@@ -1,4 +1,4 @@
-// Theme Toggle
+// da theme toggle
 const themeToggle = document.getElementById('theme-toggle');
 const htmlElement = document.documentElement;
 
@@ -19,7 +19,7 @@ themeToggle.addEventListener('click', () => {
     }, 20);
 });
 
-// Main Searcher Class
+// main searcher class
 class InesBotSearcher {
     constructor() {
         this.words = [];
@@ -146,7 +146,7 @@ class InesBotSearcher {
     }
 }
 
-// Initialize main searcher
+// main searcher
 const searcher = new InesBotSearcher();
 
 // ============================================
@@ -222,7 +222,7 @@ function createDictionaryPanel() {
     
     dictionaryPanel = panel;
     
-    // Drag functionality
+    // drag
     header.addEventListener('mousedown', (e) => {
         if (e.target.id === 'close-panel' || e.target.id === 'minimize-panel') return;
         
@@ -350,14 +350,14 @@ function makeWordsClickable() {
     let rareWords = [];
     let isLoading = false;
     
-    // Get elements
+    // get elements
     const normalBtn = document.getElementById('mode-normal');
     const rareBtn = document.getElementById('mode-rare');
     const normalSection = document.getElementById('normal-search-section');
     const rareSection = document.getElementById('rare-finder-section');
     const searchFilters = document.querySelector('.search-filters');
     
-    // Mode switching
+    // mode switching
     if (normalBtn && rareBtn && normalSection && rareSection) {
         normalBtn.addEventListener('click', () => {
             normalBtn.classList.add('mode-active');
@@ -377,7 +377,7 @@ function makeWordsClickable() {
         });
     }
     
-    // Load words
+    // load words
     async function loadRareWords() {
         if (isLoading || rareWords.length > 0) return;
         
@@ -403,7 +403,7 @@ function makeWordsClickable() {
         }
     }
     
-    // Search button
+    // search button
     document.getElementById('rare-search-btn')?.addEventListener('click', () => {
         if (rareWords.length === 0) {
             if (isLoading) {
@@ -418,7 +418,7 @@ function makeWordsClickable() {
         const prefixLength = parseInt(document.getElementById('rare-prefix-length').value);
         const maxWords = parseInt(document.getElementById('rare-max-words').value);
         
-        // Validate input
+        // validate input
         if (prefixFilter && !/^[a-z]+$/.test(prefixFilter)) {
             document.getElementById('results-box').innerHTML = '<div class="error-message">❌ Use only letters A-Z</div>';
             return;
@@ -429,7 +429,7 @@ function makeWordsClickable() {
             return;
         }
         
-        // Count prefixes
+        // count prefixes
         const prefixCounts = new Map();
         const wordSet = new Set(rareWords.map(w => w.toLowerCase()));
         
@@ -441,11 +441,11 @@ function makeWordsClickable() {
             }
         });
         
-        // Filter valid prefixes (2 to maxWords words)
+        // filter valid prefixes (2 to maxWords words)
         const results = [];
         prefixCounts.forEach((count, prefix) => {
             if (count >= 2 && count <= maxWords) {
-                // Check if prefix is valid (either a word itself or words end with it)
+                // check if da prefix is valid
                 let isValid = wordSet.has(prefix);
                 if (!isValid) {
                     for (let word of rareWords) {
@@ -466,7 +466,7 @@ function makeWordsClickable() {
             }
         });
         
-        // Sort
+        // sort
         const sortOption = document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc';
         results.sort((a, b) => {
             if (sortOption === 'count-asc') return a.count - b.count || a.prefix.localeCompare(b.prefix);
@@ -478,7 +478,7 @@ function makeWordsClickable() {
         displayResults(results, prefixFilter, prefixLength, maxWords, wordSet);
     });
     
-    // Clear button
+    // clear button
     document.getElementById('rare-clear-btn')?.addEventListener('click', () => {
         document.getElementById('rare-prefix').value = '';
         document.getElementById('rare-prefix-length').value = '3';
@@ -488,12 +488,12 @@ function makeWordsClickable() {
         document.getElementById('result-count').textContent = '0';
     });
     
-    // Enter key
+    // enter key
     document.getElementById('rare-prefix')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') document.getElementById('rare-search-btn').click();
     });
     
-// Display results
+// display results
 function displayResults(results, prefixFilter, prefixLength, maxWords, wordSet) {
     const resultsBox = document.getElementById('results-box');
     
@@ -510,7 +510,7 @@ function displayResults(results, prefixFilter, prefixLength, maxWords, wordSet) 
             ? '<span style="background:#4CAF50; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">word</span>' 
             : '<span style="background:#FF9800; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">ends with</span>';
         
-        // Store words as a data attribute instead of in the onclick
+        // store the words as data attributes
         const wordsData = encodeURIComponent(JSON.stringify(r.words));
         
         html += `
@@ -560,7 +560,7 @@ window.toggleWords = function(element) {
     element.textContent = 'Hide';
 };
     
-    // Set up max words dropdown
+    // da dropdown
     const maxSelect = document.getElementById('rare-max-words');
     if (maxSelect) {
         maxSelect.innerHTML = `
