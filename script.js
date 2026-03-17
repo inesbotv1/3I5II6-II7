@@ -59,10 +59,10 @@ class InesBotSearcher {
             document.getElementById('word-count').textContent = this.words.length;
             document.getElementById('result-count').textContent = '0';
             
-            resultsBox.innerHTML = `<div class="success-message">✅ Successfully loaded ${this.words.length} words!</div>`;
+            resultsBox.innerHTML = `<div class="success-message">Successfully loaded ${this.words.length} words!</div>`;
             
         } catch (error) {
-            resultsBox.innerHTML = '<div class="error-message">❌ Failed to load words from GitHub</div>';
+            resultsBox.innerHTML = '<div class="error-message">Failed to load words from GitHub</div>';
         }
     }
 
@@ -394,11 +394,11 @@ function makeWordsClickable() {
                 .map(w => w.trim())
                 .filter(w => w.length > 0))];
             
-            resultsBox.innerHTML = `<div class="success-message">✅ Loaded ${rareWords.length} words! Ready to search.</div>`;
+            resultsBox.innerHTML = `<div class="success-message">Loaded ${rareWords.length} words! Ready to search.</div>`;
             document.getElementById('result-count').textContent = '0';
             
         } catch (error) {
-            resultsBox.innerHTML = '<div class="error-message">❌ Failed to load words</div>';
+            resultsBox.innerHTML = '<div class="error-message">Failed to load words</div>';
         } finally {
             isLoading = false;
         }
