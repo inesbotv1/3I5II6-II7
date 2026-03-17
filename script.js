@@ -1075,4 +1075,168 @@ function createFilterModeUI() {
             <option value="10">10 words</option>
         `;
     }
+// ============================================
+// WORD BOMB MODE - Find patterns anywhere in words
+// ============================================
+
+(function() {
+    console.log('💣 Initializing Word Bomb Mode...');
+    
+    // Create Word Bomb toggle in normal search section
+    const normalSection = document.getElementById('normal-search-section');
+    if (!normalSection) return;
+    
+    // Check if word bomb toggle already exists
+    if (document.getElementById('wordbomb-toggle-container')) return;
+    
+    // Create toggle container
+    const toggleContainer = document.createElement('div');
+    toggleContainer.id = 'wordbomb-toggle-container';
+    toggleContainer.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin: 15px 0;
+        padding: 12px 15px;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    `;
+    
+    toggleContainer.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-weight: 600; color: var(--text-primary);">💣 Word Bomb Mode:</span>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="wordbomb-toggle" style="width: 18px; height: 18px; accent-color: var(--text-primary);">
+                <span style="color: var(--text-primary);">Search anywhere in word</span>
+            </label>
+        </div>
+        <div id="wordbomb-hint" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">
+            Finds patterns in prefix, suffix, or middle of words
+        </div>
+    `;
+    
+    // Insert after the search filters
+    const searchFilters = normalSection.querySelector('.search-filters');
+    if (searchFilters) {
+        searchFilters.parentNode.insertBefore(toggleContainer, searchFilters.nextSibling);
+    }
+    
+    // Modify the performSearch method to handle word bomb mode
+    const originalPerformSearch = searcher.performSearch.bind(searcher);
+    
+    searcher.performSearch = function() {
+        if (this.words.length === 0) {
+            this.showError('No words loaded');
+            return;
+        }
+
+        const wordBombMode = document.getElementById('wordbomb-toggle')?.checked || false;
+        const prefix = document.getElementById('prefix-input').value.toLowerCase().trim();
+        const suffix = document.getElementById('suffix-input').value.toLowerCase().trim();
+        
+        let results;
+        
+        if (wordBombMode) {
+            // Word Bomb Mode: Search for pattern anywhere in word
+            if (!prefix && !suffix) {
+                this.showError('Enter a pattern to search for');
+                return;
+            }
+            
+            // Combine prefix and suffix as a single pattern to find anywhere
+            const pattern = prefix + suffix;
+            
+            if (pattern.length === 0) {
+                this.showError('Enter a pattern to search for');
+                return;
+            }
+            
+            results = this.words.filter(word => {
+                const wordLower = word.toLowerCase();
+                return wordLower.includes(pattern);
+            });
+            
+            // Add info to results box header
+            setTimeout(() => {
+                const resultsBox = document.getElementById('results-box');
+                if (resultsBox && results.length > 0) {
+                    const header = resultsBox.querySelector('.result-item:first-child');
+                    if (header) {
+                        header.innerHTML = `Found ${results.length} words containing "${pattern}"`;
+                    }
+                }
+            }, 10);
+            
+        } else {
+            // Normal mode: prefix + suffix search
+            results = this.words.filter(word => {
+                const wordLower = word.toLowerCase();
+                if (prefix && !wordLower.startsWith(prefix)) return false;
+                if (suffix && !wordLower.endsWith(suffix)) return false;
+                return true;
+            });
+        }
+        
+        // Apply sorting
+        let sortOption = 'none';
+        document.querySelectorAll('input[name="sort"]').forEach(radio => {
+            if (radio.checked) sortOption = radio.value;
+        });
+        
+        if (sortOption === 'shortest') {
+            results.sort((a, b) => a.length - b.length);
+        } else if (sortOption === 'longest') {
+            results.sort((a, b) => b.length - a.length);
+        }
+        
+        document.getElementById('result-count').textContent = results.length;
+        this.displayResults(results);
+    };
+    
+    // Add visual feedback when toggle changes
+    document.getElementById('wordbomb-toggle')?.addEventListener('change', function() {
+        const prefixInput = document.getElementById('prefix-input');
+        const suffixInput = document.getElementById('suffix-input');
+        const hint = document.getElementById('wordbomb-hint');
+        
+        if (this.checked) {
+            // Word Bomb mode active
+            prefixInput.placeholder = 'Enter pattern part 1...';
+            suffixInput.placeholder = 'Enter pattern part 2...';
+            hint.innerHTML = '🔍 Combines both inputs to find pattern anywhere in word';
+            
+            // Highlight the inputs
+            prefixInput.style.borderColor = 'var(--text-primary)';
+            suffixInput.style.borderColor = 'var(--text-primary)';
+        } else {
+            // Normal mode
+            prefixInput.placeholder = 'Starts with...';
+            suffixInput.placeholder = 'Ends with...';
+            hint.innerHTML = 'Finds words that start with prefix AND end with suffix';
+            
+            // Reset border colors
+            prefixInput.style.borderColor = '';
+            suffixInput.style.borderColor = '';
+        }
+    });
+    
+    // Update clear button to handle word bomb mode
+    const originalClearSearch = searcher.clearSearch.bind(searcher);
+    
+    searcher.clearSearch = function() {
+        originalClearSearch();
+        
+        // Reset word bomb toggle
+        const toggle = document.getElementById('wordbomb-toggle');
+        if (toggle && toggle.checked) {
+            toggle.checked = false;
+            // Trigger change event to reset styles
+            const event = new Event('change');
+            toggle.dispatchEvent(event);
+        }
+    };
+    
+    console.log('💣 Word Bomb Mode initialized!');
+
 })();
