@@ -79,5 +79,52 @@
         </footer>
     </div>
     <script src="script.js"></script>
+    <!-- Rare Prefix Finder Feature -->
+<div class="rare-prefix-section">
+    <div class="rare-prefix-header" onclick="toggleRarePrefixPanel()">
+        <h3>🔍 Rare Prefix Finder <span class="toggle-icon">▼</span></h3>
+        <p class="rare-prefix-description">Find prefixes with few words (great for word games!)</p>
+    </div>
+    
+    <div id="rare-prefix-panel" class="rare-prefix-panel">
+        <div class="rare-prefix-controls">
+            <div class="rare-prefix-row">
+                <label for="prefix-length">Prefix length:</label>
+                <select id="prefix-length" class="rare-prefix-select">
+                    <option value="2">2 letters</option>
+                    <option value="3" selected>3 letters</option>
+                    <option value="4">4 letters</option>
+                </select>
+            </div>
+            
+            <div class="rare-prefix-row">
+                <label for="max-words">Max words (rare if ≤):</label>
+                <select id="max-words" class="rare-prefix-select">
+                    <option value="5">5 words</option>
+                    <option value="6" selected>6 words</option>
+                    <option value="7">7 words</option>
+                    <option value="8">8 words</option>
+                </select>
+            </div>
+            
+            <div class="rare-prefix-row">
+                <label for="min-words">Min words (optional):</label>
+                <select id="min-words" class="rare-prefix-select">
+                    <option value="1">1 word (rarest)</option>
+                    <option value="2">2+ words</option>
+                    <option value="3">3+ words</option>
+                </select>
+            </div>
+            
+            <button id="find-rare-prefixes-btn" class="btn btn-search" style="width: 100%; margin-top: 10px;">
+                🔍 Find Rare Prefixes
+            </button>
+        </div>
+        
+        <div id="rare-prefix-results" class="rare-prefix-results">
+            <p class="placeholder-text">Click the button to analyze your word list...</p>
+        </div>
+    </div>
+</div>
 </body>
 </html>
