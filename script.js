@@ -441,10 +441,10 @@ function makeWordsClickable() {
             }
         });
         
-        // Filter valid prefixes (3 to maxWords words)
+        // Filter valid prefixes (2 to maxWords words)
         const results = [];
         prefixCounts.forEach((count, prefix) => {
-            if (count >= 3 && count <= maxWords) {
+            if (count >= 2 && count <= maxWords) {
                 // Check if prefix is valid (either a word itself or words end with it)
                 let isValid = wordSet.has(prefix);
                 if (!isValid) {
@@ -482,7 +482,7 @@ function makeWordsClickable() {
     document.getElementById('rare-clear-btn')?.addEventListener('click', () => {
         document.getElementById('rare-prefix').value = '';
         document.getElementById('rare-prefix-length').value = '3';
-        document.getElementById('rare-max-words').value = '6';
+        document.getElementById('rare-max-words').value = '2';
         document.querySelectorAll('input[name="rare-sort"]')[0].checked = true;
         document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Filters cleared</p>';
         document.getElementById('result-count').textContent = '0';
@@ -498,11 +498,11 @@ function makeWordsClickable() {
         const resultsBox = document.getElementById('results-box');
         
         if (results.length === 0) {
-            resultsBox.innerHTML = `<div class="status-message">No ${prefixLength}-letter prefixes with 3-${maxWords} words found</div>`;
+            resultsBox.innerHTML = `<div class="status-message">No ${prefixLength}-letter prefixes with 2-${maxWords} words found</div>`;
             return;
         }
         
-        let html = `<div class="rare-stats">Found ${results.length} prefixes with 3-${maxWords} words</div>`;
+        let html = `<div class="rare-stats">Found ${results.length} prefixes with 2-${maxWords} words</div>`;
         
         results.forEach(r => {
             const isWord = wordSet.has(r.prefix);
@@ -542,12 +542,15 @@ function makeWordsClickable() {
     const maxSelect = document.getElementById('rare-max-words');
     if (maxSelect) {
         maxSelect.innerHTML = `
+            <option value="2" selected>2 words</option>
             <option value="3">3 words</option>
             <option value="4">4 words</option>
             <option value="5">5 words</option>
-            <option value="6" selected>6 words</option>
+            <option value="6">6 words</option>
             <option value="7">7 words</option>
             <option value="8">8 words</option>
+            <option value="9">9 words</option>
+            <option value="10">10 words</option>
         `;
     }
 })();
