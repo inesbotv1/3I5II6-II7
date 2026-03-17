@@ -565,7 +565,7 @@ function makeWordsClickable() {
                 filterMode,
                 wordSet,
                 allPrefixes: validPrefixes,
-                currentPage: 0,
+                loadedCount: 0, // Track how many we've loaded
                 pageSize: 10,
                 totalCount: validPrefixes.length,
                 sortOption
@@ -574,8 +574,11 @@ function makeWordsClickable() {
             // Update result count
             document.getElementById('result-count').textContent = validPrefixes.length;
             
-            // Render first page
-            renderLazyPage(0);
+            // Clear results box
+            document.getElementById('results-box').innerHTML = '';
+            
+            // Load first page
+            loadMoreResults();
         }, 10);
     });
     
@@ -604,31 +607,31 @@ function makeWordsClickable() {
         if (e.key === 'Enter') document.getElementById('rare-search-btn').click();
     });
     
-    // Render a specific page from stored prefixes
-    function renderLazyPage(page) {
+    // Function to load more results
+    function loadMoreResults() {
         if (!searchState) return;
         
-        const { allPrefixes, pageSize, wordSet, maxWords, prefixLength, filterMode } = searchState;
-        const start = page * pageSize;
+        const { allPrefixes, loadedCount, pageSize, wordSet, maxWords, prefixLength, filterMode, totalCount } = searchState;
+        
+        if (loadedCount >= totalCount) return;
+        
+        const start = loadedCount;
         const end = Math.min(start + pageSize, allPrefixes.length);
         const pagePrefixes = allPrefixes.slice(start, end);
         
-        if (allPrefixes.length === 0) {
-            let message = '';
-            if (filterMode === 'max-words') {
-                message = `No ${prefixLength}-letter prefixes with 2-${maxWords} words found`;
-            } else {
-                message = `No ${prefixLength}-letter prefixes with words longer than 6 letters found`;
-            }
-            document.getElementById('results-box').innerHTML = `<div class="status-message">${message}</div>`;
-            return;
-        }
-        
-        // Show loading for this page
-        document.getElementById('results-box').innerHTML = '<div class="loading-message">⏳ Loading page...</div>';
+        // Show loading indicator
+        const resultsBox = document.getElementById('results-box');
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading-message';
+        loadingDiv.id = 'loading-indicator';
+        loadingDiv.innerHTML = '⏳ Loading more prefixes...';
+        resultsBox.appendChild(loadingDiv);
         
         // Use setTimeout to prevent UI freeze when processing many words
         setTimeout(() => {
+            // Remove loading indicator
+            document.getElementById('loading-indicator')?.remove();
+            
             // Process current page prefixes
             const results = pagePrefixes.map(p => {
                 // Get words for this prefix
@@ -659,20 +662,26 @@ function makeWordsClickable() {
                 } : null;
             }).filter(r => r !== null);
             
-            // Display results
-            displayLazyResults(results, page, allPrefixes.length);
+            // Display results (append to existing)
+            displayMoreResults(results);
             
-            // Update current page
-            searchState.currentPage = page;
+            // Update loaded count
+            searchState.loadedCount = end;
+            
+            // Add "Load More" button if there are more results
+            if (searchState.loadedCount < totalCount) {
+                addLoadMoreButton();
+            }
         }, 10);
     }
     
-    // Display results with lazy loading navigation
-    function displayLazyResults(results, currentPage, totalCount) {
+    // Function to display additional results
+    function displayMoreResults(results) {
         const resultsBox = document.getElementById('results-box');
-        const { pageSize, wordSet, maxWords, prefixLength, filterMode } = searchState;
-        const start = currentPage * pageSize + 1;
-        const end = Math.min(start + results.length - 1, totalCount);
+        const { filterMode, maxWords, totalCount, loadedCount } = searchState;
+        
+        // Remove existing load more button if present
+        document.getElementById('load-more-container')?.remove();
         
         let modeDescription = '';
         if (filterMode === 'max-words') {
@@ -681,8 +690,16 @@ function makeWordsClickable() {
             modeDescription = `words longer than 6 letters`;
         }
         
-        let html = `<div class="rare-stats">Found ${totalCount} prefixes with ${modeDescription} (showing ${start}-${end} of ${totalCount})</div>`;
+        // If this is the first batch, show the stats
+        if (loadedCount === 0) {
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'rare-stats';
+            statsDiv.id = 'rare-stats';
+            statsDiv.innerHTML = `Found ${totalCount} prefixes with ${modeDescription}`;
+            resultsBox.appendChild(statsDiv);
+        }
         
+        // Add each result
         results.forEach(r => {
             const isWord = wordSet.has(r.prefix);
             const badge = isWord 
@@ -692,45 +709,52 @@ function makeWordsClickable() {
             // Store words data for this prefix
             const wordsData = encodeURIComponent(JSON.stringify(r.words));
             
-            html += `
-                <div class="rare-prefix-item" data-words="${wordsData}">
-                    <div class="rare-prefix-header">
-                        <span class="rare-prefix-badge">${r.count} words</span>
-                        <span class="rare-prefix-value">"${r.prefix}" ${badge}</span>
-                        <span class="rare-prefix-toggle" onclick="window.toggleWords(this)">Show</span>
-                    </div>
-                    <div class="rare-prefix-words" style="display:none; margin-top:10px; padding:10px; background:var(--bg-tertiary); border-radius:4px;"></div>
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'rare-prefix-item';
+            itemDiv.setAttribute('data-words', wordsData);
+            itemDiv.innerHTML = `
+                <div class="rare-prefix-header">
+                    <span class="rare-prefix-badge">${r.count} words</span>
+                    <span class="rare-prefix-value">"${r.prefix}" ${badge}</span>
+                    <span class="rare-prefix-toggle" onclick="window.toggleWords(this)">Show</span>
                 </div>
+                <div class="rare-prefix-words" style="display:none; margin-top:10px; padding:10px; background:var(--bg-tertiary); border-radius:4px;"></div>
             `;
+            
+            resultsBox.appendChild(itemDiv);
         });
-        
-        // Add navigation buttons
-        const navHtml = `
-            <div style="display: flex; justify-content: space-between; margin-top: 20px; padding: 10px;">
-                ${currentPage > 0 ? 
-                    '<button class="btn" onclick="window.loadPrevPage()" style="width: auto; padding: 8px 20px;">◀ Previous</button>' : 
-                    '<div></div>'}
-                ${end < totalCount ? 
-                    '<button class="btn btn-search" onclick="window.loadNextPage()" style="width: auto; padding: 8px 20px;">Next ▼</button>' : 
-                    '<div></div>'}
-            </div>
-        `;
-        
-        resultsBox.innerHTML = html + navHtml;
     }
     
-    // Navigation functions
-    window.loadNextPage = function() {
-        if (searchState) {
-            renderLazyPage(searchState.currentPage + 1);
-        }
-    };
-    
-    window.loadPrevPage = function() {
-        if (searchState) {
-            renderLazyPage(searchState.currentPage - 1);
-        }
-    };
+    // Function to add "Load More" button
+    function addLoadMoreButton() {
+        const resultsBox = document.getElementById('results-box');
+        const { loadedCount, totalCount } = searchState;
+        
+        // Create container for button and counter
+        const container = document.createElement('div');
+        container.id = 'load-more-container';
+        container.style.cssText = 'display: flex; justify-content: center; margin: 20px 0; flex-direction: column; align-items: center; gap: 10px;';
+        
+        // Add counter
+        const counter = document.createElement('div');
+        counter.style.cssText = 'color: var(--text-secondary); font-size: 0.9em;';
+        counter.textContent = `Showing ${loadedCount} of ${totalCount} prefixes`;
+        
+        // Add button
+        const button = document.createElement('button');
+        button.className = 'btn btn-search';
+        button.style.cssText = 'width: auto; padding: 8px 30px;';
+        button.textContent = 'Load More ▼';
+        button.onclick = function() {
+            this.disabled = true;
+            this.textContent = 'Loading...';
+            loadMoreResults();
+        };
+        
+        container.appendChild(counter);
+        container.appendChild(button);
+        resultsBox.appendChild(container);
+    }
     
     // toggleWords - made more efficient
     window.toggleWords = function(element) {
