@@ -667,7 +667,7 @@ function createFilterModeUI() {
     // clear button - UPDATED
     document.getElementById('rare-clear-btn')?.addEventListener('click', () => {
         document.getElementById('rare-prefix').value = '';
-        document.getElementById('rare-prefix-length').value = '3';
+        document.getElementById('rare-prefix-length').value = '2';
         document.getElementById('rare-max-words').value = '2';
         
         // Reset filter mode to max-words
