@@ -1287,7 +1287,7 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // ============================================
-// RARE PREFIX FINDER - INDEPENDENT WORD LIST
+// RARE PREFIX FINDER - FIXED & IMPROVED
 // ============================================
 
 (function() {
@@ -1297,12 +1297,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let rareWords = [];
     let isLoading = false;
     
-    // Mode switching
+    // Get references to elements
     const normalBtn = document.getElementById('mode-normal');
     const rareBtn = document.getElementById('mode-rare');
     const normalSection = document.getElementById('normal-search-section');
     const rareSection = document.getElementById('rare-finder-section');
+    const searchFilters = document.querySelector('.search-filters'); // The "Starts with" and "Ends with" section
     
+    // Mode switching
     if (normalBtn && rareBtn && normalSection && rareSection) {
         normalBtn.addEventListener('click', () => {
             normalBtn.classList.add('mode-active');
@@ -1310,8 +1312,12 @@ document.addEventListener('DOMContentLoaded', () => {
             normalSection.style.display = 'block';
             rareSection.style.display = 'none';
             
+            // Show the original search filters in normal mode
+            if (searchFilters) searchFilters.style.display = 'grid';
+            
             // Clear rare results when switching away
             document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Switched to Normal Mode</p>';
+            document.getElementById('result-count').textContent = '0';
         });
         
         rareBtn.addEventListener('click', () => {
@@ -1319,6 +1325,9 @@ document.addEventListener('DOMContentLoaded', () => {
             rareBtn.classList.add('mode-active');
             normalSection.style.display = 'none';
             rareSection.style.display = 'block';
+            
+            // HIDE the original search filters in rare mode
+            if (searchFilters) searchFilters.style.display = 'none';
             
             // Load words for rare finder when switching to rare mode
             loadRareWords();
@@ -1394,12 +1403,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const prefixLength = parseInt(document.getElementById('rare-prefix-length').value);
         const maxWords = parseInt(document.getElementById('rare-max-words').value);
         
+        // VALIDATION: Check if prefixFilter contains only letters
+        if (prefixFilter.length > 0) {
+            // Check if it contains any non-letter characters
+            if (!/^[a-z]+$/.test(prefixFilter)) {
+                document.getElementById('results-box').innerHTML = '<div class="error-message">❌ Please use only letters (A-Z) in the prefix filter</div>';
+                return;
+            }
+            
+            // Check if prefixFilter is longer than prefixLength
+            if (prefixFilter.length > prefixLength) {
+                document.getElementById('results-box').innerHTML = `<div class="error-message">❌ Prefix filter "${prefixFilter}" is longer than ${prefixLength} letters. Make it shorter or increase prefix length.</div>`;
+                return;
+            }
+        }
+        
         console.log(`Filters: prefixFilter="${prefixFilter}", length=${prefixLength}, max=${maxWords}`);
+        
+        // Create a Set of all valid words for quick lookup
+        const validWordsSet = new Set(rareWords.map(w => w.toLowerCase()));
         
         // Count prefixes
         const prefixCounts = new Map();
         
-        // Loop through ALL words
+        // Loop through ALL words to count prefixes
         rareWords.forEach(word => {
             if (word.length >= prefixLength) {
                 const prefix = word.slice(0, prefixLength).toLowerCase();
@@ -1416,26 +1443,49 @@ document.addEventListener('DOMContentLoaded', () => {
         
         console.log(`Found ${prefixCounts.size} total prefixes`);
         
-        // Build results array - ONLY 3-6 WORDS
+        // Build results array - ONLY 3-8 WORDS (hardcoded min 3, max from dropdown)
         const rarePrefixes = [];
         
         prefixCounts.forEach((count, prefix) => {
             // ONLY include if count is between 3 and maxWords (inclusive)
             if (count >= 3 && count <= maxWords) {
-                // Get all words with this prefix
-                const allWords = rareWords.filter(word => 
-                    word.toLowerCase().startsWith(prefix)
-                );
                 
-                rarePrefixes.push({
-                    prefix: prefix,
-                    count: count,
-                    allWords: allWords
-                });
+                // Check if the prefix itself is a valid word OR if any word ends with this prefix
+                let isValidPrefix = false;
+                
+                // Check 1: Is the prefix itself a word in the list?
+                if (validWordsSet.has(prefix)) {
+                    isValidPrefix = true;
+                }
+                
+                // Check 2: Does any word end with this prefix?
+                if (!isValidPrefix) {
+                    for (let word of rareWords) {
+                        if (word.toLowerCase().endsWith(prefix) && word.length > prefix.length) {
+                            isValidPrefix = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // ONLY include if it's a valid prefix
+                if (isValidPrefix) {
+                    // Get all words with this prefix
+                    const allWords = rareWords.filter(word => 
+                        word.toLowerCase().startsWith(prefix)
+                    );
+                    
+                    rarePrefixes.push({
+                        prefix: prefix,
+                        count: count,
+                        allWords: allWords,
+                        isValid: isValidPrefix
+                    });
+                }
             }
         });
         
-        console.log(`Found ${rarePrefixes.length} rare prefixes with 3-${maxWords} words`);
+        console.log(`Found ${rarePrefixes.length} valid rare prefixes with 3-${maxWords} words`);
         
         // Get sort option
         let sortOption = 'count-asc';
@@ -1489,7 +1539,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const resultsBox = document.getElementById('results-box');
         
         if (prefixes.length === 0) {
-            let message = `No ${prefixLength}-letter prefixes`;
+            let message = `No valid ${prefixLength}-letter prefixes`;
             if (prefixFilter) message += ` starting with "${prefixFilter}"`;
             message += ` with 3-${maxWords} words found`;
             resultsBox.innerHTML = `<div class="status-message">${message}</div>`;
@@ -1498,18 +1548,24 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let html = `
             <div class="rare-stats">
-                Found ${prefixes.length} rare ${prefixLength}-letter prefix${prefixes.length !== 1 ? 'es' : ''}
+                Found ${prefixes.length} valid ${prefixLength}-letter prefix${prefixes.length !== 1 ? 'es' : ''}
                 ${prefixFilter ? `starting with "${prefixFilter}" ` : ''}
                 (${prefixes[0].count} to ${prefixes[prefixes.length-1].count} words)
             </div>
         `;
         
         prefixes.forEach(item => {
+            // Check if prefix itself is a word
+            const isExactWord = rareWords.map(w => w.toLowerCase()).includes(item.prefix);
+            const validityBadge = isExactWord 
+                ? '<span style="background: var(--button-primary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; margin-left: 8px;">📖 is a word</span>' 
+                : '<span style="background: var(--button-secondary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; margin-left: 8px;">🔚 words end with it</span>';
+            
             html += `
                 <div class="rare-prefix-item">
                     <div class="rare-prefix-header">
                         <span class="rare-prefix-badge">${item.count} words</span>
-                        <span class="rare-prefix-value">"${item.prefix}"</span>
+                        <span class="rare-prefix-value">"${item.prefix}" ${validityBadge}</span>
                         <span class="rare-prefix-toggle" onclick="toggleRareWords(this)">
                             📋 Show words
                         </span>
@@ -1533,5 +1589,21 @@ document.addEventListener('DOMContentLoaded', () => {
             : '📋 Show words';
     };
     
+    // Update the max words dropdown to show 3-8 range
+    const maxWordsSelect = document.getElementById('rare-max-words');
+    if (maxWordsSelect) {
+        maxWordsSelect.innerHTML = `
+            <option value="3">3 words</option>
+            <option value="4">4 words</option>
+            <option value="5">5 words</option>
+            <option value="6" selected>6 words</option>
+            <option value="7">7 words</option>
+            <option value="8">8 words</option>
+        `;
+    }
+    
+    console.log('✅ Rare Prefix Finder Ready - Independent word list');
+    console.log('📏 Min words: 3, Max words: 3-8 selectable');
+})();
     console.log('✅ Rare Prefix Finder Ready - Independent word list');
 })();
