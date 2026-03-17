@@ -689,44 +689,101 @@ function createFilterModeUI() {
         if (e.key === 'Enter') document.getElementById('rare-search-btn').click();
     });
     
-// Function to add "Load More" button - IMPROVED STYLING
-function addLoadMoreButton() {
-    const resultsBox = document.getElementById('results-box');
-    const { currentIndex, totalCount, validResults } = searchState;
-    
-    // Remove any existing load more container
-    const existingContainer = document.getElementById('load-more-container');
-    if (existingContainer) existingContainer.remove();
-    
-    // Create container for button and counter
-    const container = document.createElement('div');
-    container.id = 'load-more-container';
-    container.style.cssText = 'display: flex; justify-content: center; margin: 25px 0 15px; flex-direction: column; align-items: center; gap: 12px;';
-    
-    // Add counter with better styling
-    const counter = document.createElement('div');
-    counter.style.cssText = 'color: var(--text-secondary); font-size: 0.9rem; background: var(--bg-tertiary); padding: 4px 12px; border-radius: 20px;';
-    counter.textContent = `📊 ${validResults.length} of ${totalCount} prefixes shown`;
-    
-    // Add button with improved styling
-    const button = document.createElement('button');
-    button.className = 'btn btn-search';
-    button.style.cssText = 'width: auto; padding: 10px 40px; font-size: 1rem; transition: all 0.2s ease; position: relative; overflow: hidden;';
-    button.innerHTML = 'Load More <span style="font-size: 1.2rem; margin-left: 4px;">↓</span>';
-    
-    // Add ripple effect on click
-    button.onclick = function(e) {
-        this.disabled = true;
-        this.innerHTML = 'Loading...';
-        this.style.transform = 'scale(0.98)';
-        loadVerifiedResults(false);
-        setTimeout(() => this.style.transform = 'scale(1)', 200);
-    };
-    
-    container.appendChild(counter);
-    container.appendChild(button);
-    resultsBox.appendChild(container);
-}
+    // Function to load verified results (keeps loading until we have pageSize valid ones)
+    function loadVerifiedResults(isFirstLoad = false) {
+        if (!searchState) return;
+        
+        const { allPrefixes, currentIndex, pageSize, wordSet, totalCount } = searchState;
+        
+        if (currentIndex >= totalCount) return;
+        
+        // Show loading indicator (but not for first load since we already showed one)
+        if (!isFirstLoad) {
+            const resultsBox = document.getElementById('results-box');
+            
+            // Remove any existing loading indicator
+            const existingLoader = document.getElementById('loading-indicator');
+            if (existingLoader) existingLoader.remove();
+            
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading-message';
+            loadingDiv.id = 'loading-indicator';
+            loadingDiv.innerHTML = '⏳ Loading more prefixes...';
+            resultsBox.appendChild(loadingDiv);
+        }
+        
+        // Use setTimeout to prevent UI freeze
+        setTimeout(() => {
+            let verified = [];
+            let newIndex = currentIndex;
+            
+            // Keep loading prefixes until we have pageSize valid ones or run out
+            while (verified.length < pageSize && newIndex < allPrefixes.length) {
+                const p = allPrefixes[newIndex];
+                newIndex++;
+                
+                // Get words for this prefix
+                const words = [];
+                for (let w of rareWords) {
+                    if (w.toLowerCase().startsWith(p.prefix)) {
+                        words.push(w);
+                        if (words.length === p.count) break;
+                    }
+                }
+                
+                // Verify if prefix is valid (is a word or appears as ending)
+                let isValid = wordSet.has(p.prefix);
+                if (!isValid) {
+                    for (let word of rareWords) {
+                        if (word.length > p.prefix.length && word.toLowerCase().endsWith(p.prefix)) {
+                            isValid = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Only keep valid prefixes
+                if (isValid) {
+                    verified.push({
+                        prefix: p.prefix,
+                        count: p.count,
+                        words: words
+                    });
+                }
+            }
+            
+            // Update search state with new index
+            searchState.currentIndex = newIndex;
+            
+            // If we don't have enough valid ones AND there are more prefixes to check,
+            // continue collecting BEFORE displaying
+            if (verified.length < pageSize && newIndex < allPrefixes.length) {
+                // Add these to a temporary collection and keep going
+                setTimeout(() => loadVerifiedResults(isFirstLoad), 10);
+                return;
+            }
+            
+            // Remove loading indicator
+            if (!isFirstLoad) {
+                document.getElementById('loading-indicator')?.remove();
+            }
+            
+            // NOW display results only when we have a full batch or no more data
+            if (verified.length > 0) {
+                displayVerifiedResults(verified, isFirstLoad);
+            }
+            
+            // Add "Load More" button if there are more prefixes to check
+            if (searchState.currentIndex < totalCount) {
+                // Remove existing load more button if present
+                document.getElementById('load-more-container')?.remove();
+                addLoadMoreButton();
+            } else {
+                // No more prefixes to check
+                document.getElementById('load-more-container')?.remove();
+            }
+        }, 10);
+    }
     
     // Function to display verified results
     function displayVerifiedResults(results, isFirstLoad = false) {
@@ -794,44 +851,40 @@ function addLoadMoreButton() {
         });
     }
     
-// Function to add "Load More" button - IMPROVED STYLING
-function addLoadMoreButton() {
-    const resultsBox = document.getElementById('results-box');
-    const { currentIndex, totalCount, validResults } = searchState;
-    
-    // Remove any existing load more container
-    const existingContainer = document.getElementById('load-more-container');
-    if (existingContainer) existingContainer.remove();
-    
-    // Create container for button and counter
-    const container = document.createElement('div');
-    container.id = 'load-more-container';
-    container.style.cssText = 'display: flex; justify-content: center; margin: 25px 0 15px; flex-direction: column; align-items: center; gap: 12px;';
-    
-    // Add counter with better styling
-    const counter = document.createElement('div');
-    counter.style.cssText = 'color: var(--text-secondary); font-size: 0.9rem; background: var(--bg-tertiary); padding: 4px 12px; border-radius: 20px;';
-    counter.textContent = `📊 ${validResults.length} of ${totalCount} prefixes shown`;
-    
-    // Add button with improved styling
-    const button = document.createElement('button');
-    button.className = 'btn btn-search';
-    button.style.cssText = 'width: auto; padding: 10px 40px; font-size: 1rem; transition: all 0.2s ease; position: relative; overflow: hidden;';
-    button.innerHTML = 'Load More <span style="font-size: 1.2rem; margin-left: 4px;">↓</span>';
-    
-    // Add ripple effect on click
-    button.onclick = function(e) {
-        this.disabled = true;
-        this.innerHTML = 'Loading...';
-        this.style.transform = 'scale(0.98)';
-        loadVerifiedResults(false);
-        setTimeout(() => this.style.transform = 'scale(1)', 200);
-    };
-    
-    container.appendChild(counter);
-    container.appendChild(button);
-    resultsBox.appendChild(container);
-}
+    // Function to add "Load More" button
+    function addLoadMoreButton() {
+        const resultsBox = document.getElementById('results-box');
+        const { currentIndex, totalCount, validResults } = searchState;
+        
+        // Remove any existing load more container
+        const existingContainer = document.getElementById('load-more-container');
+        if (existingContainer) existingContainer.remove();
+        
+        // Create container for button and counter
+        const container = document.createElement('div');
+        container.id = 'load-more-container';
+        container.style.cssText = 'display: flex; justify-content: center; margin: 20px 0; flex-direction: column; align-items: center; gap: 10px;';
+        
+        // Add counter
+        const counter = document.createElement('div');
+        counter.style.cssText = 'color: var(--text-secondary); font-size: 0.9em;';
+        counter.textContent = `Showing ${validResults.length} verified prefixes of ${totalCount} total matches`;
+        
+        // Add button
+        const button = document.createElement('button');
+        button.className = 'btn btn-search';
+        button.style.cssText = 'width: auto; padding: 8px 30px;';
+        button.textContent = 'Load More ▼';
+        button.onclick = function() {
+            this.disabled = true;
+            this.textContent = 'Loading...';
+            loadVerifiedResults(false);
+        };
+        
+        container.appendChild(counter);
+        container.appendChild(button);
+        resultsBox.appendChild(container);
+    }
     
     // toggleWords - made more efficient
     window.toggleWords = function(element) {
