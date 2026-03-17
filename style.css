@@ -792,3 +792,215 @@ html.theme-transitioning,
 html.theme-transitioning * {
     transition: none !important;
 }
+/* Mode Toggle Styles */
+.mode-toggle-container {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: var(--bg-accent);
+    border-radius: 8px;
+    border: 1px solid var(--border-primary);
+}
+
+.mode-toggle {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border: 1px solid var(--border-secondary);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 44px;
+}
+
+.mode-btn:hover {
+    background: var(--button-tertiary-hover);
+    transform: translateY(-2px);
+}
+
+.mode-btn.mode-active {
+    background: var(--button-primary);
+    color: var(--bg-accent);
+    border-color: var(--button-primary);
+    cursor: default;
+}
+
+.mode-btn.mode-active:hover {
+    transform: none;
+    background: var(--button-primary);
+}
+
+/* Rare Controls Styles */
+.rare-controls {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: var(--bg-accent);
+    border-radius: 8px;
+    border: 1px solid var(--border-primary);
+    animation: fadeIn 0.3s ease;
+}
+
+.rare-controls-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.rare-sort-options {
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    border: 1px solid var(--border-primary);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Rare Prefix Results Styling */
+.rare-prefix-item {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-primary);
+    transition: background-color 0.2s ease;
+}
+
+.rare-prefix-item:hover {
+    background: var(--highlight-bg);
+}
+
+.rare-prefix-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.rare-prefix-badge {
+    background: var(--button-primary);
+    color: var(--bg-accent);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+    min-width: 70px;
+    text-align: center;
+}
+
+.rare-prefix-value {
+    font-size: 1.2em;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-family: monospace;
+    background: var(--bg-tertiary);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.rare-prefix-toggle {
+    margin-left: auto;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+}
+
+.rare-prefix-toggle:hover {
+    background: var(--button-tertiary-hover);
+    color: var(--text-primary);
+}
+
+.rare-prefix-words {
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    display: none;
+    border: 1px solid var(--border-primary);
+}
+
+.rare-prefix-words.show {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+.rare-prefix-words span {
+    display: inline-block;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 3px 10px;
+    margin: 3px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    border: 1px solid var(--border-secondary);
+}
+
+.rare-stats {
+    background: var(--highlight-bg);
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+    font-weight: 500;
+    border: 1px solid var(--border-primary);
+    text-align: center;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .mode-toggle {
+        flex-direction: column;
+    }
+    
+    .rare-controls-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .rare-sort-options {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .rare-prefix-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .rare-prefix-toggle {
+        margin-left: 0;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .mode-btn {
+        font-size: 0.9em;
+        padding: 10px;
+    }
+    
+    .rare-prefix-badge {
+        font-size: 0.8em;
+        min-width: 60px;
+    }
+    
+    .rare-prefix-value {
+        font-size: 1.1em;
+    }
+}
