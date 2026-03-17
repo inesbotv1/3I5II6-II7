@@ -1287,11 +1287,26 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 // ============================================
-// RARE PREFIX FINDER - ADD THIS AT THE VERY END
+// RARE PREFIX FINDER - UPDATED VERSION
 // ============================================
 
 (function() {
     console.log('🔧 Initializing Rare Prefix Finder...');
+    
+    // Get searcher instance - FIXED
+    function getSearcher() {
+        // Try global variable first
+        if (window.searcher) return window.searcher;
+        
+        // Try to find any InesBotSearcher instance
+        for (let key in window) {
+            if (window[key] instanceof InesBotSearcher) {
+                window.searcher = window[key]; // Store for later
+                return window.searcher;
+            }
+        }
+        return null;
+    }
     
     // Mode switching
     const normalBtn = document.getElementById('mode-normal');
@@ -1320,17 +1335,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Rare search button
     document.getElementById('rare-search-btn')?.addEventListener('click', () => {
-        // Get searcher instance
-        let searcher;
-        for (let key in window) {
-            if (window[key] instanceof InesBotSearcher) {
-                searcher = window[key];
-                break;
-            }
+        const searcher = getSearcher();
+        
+        if (!searcher) {
+            alert('Searcher not found. Please refresh the page.');
+            return;
         }
         
-        if (!searcher || !searcher.words || searcher.words.length === 0) {
-            alert('Words not loaded yet. Please wait.');
+        if (!searcher.words || searcher.words.length === 0) {
+            alert('Words still loading. Please wait a moment and try again.');
             return;
         }
         
@@ -1355,10 +1368,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Build results
+        // Build results - MINIMUM 3 WORDS (changed from 1)
         const rarePrefixes = [];
         prefixCounts.forEach((count, prefix) => {
-            if (count <= maxWords) {
+            if (count >= 3 && count <= maxWords) {  // Changed from >=1 to >=3
                 rarePrefixes.push({
                     prefix: prefix,
                     count: count,
@@ -1408,7 +1421,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (prefixes.length === 0) {
             let message = `No ${prefixLength}-letter prefixes`;
             if (prefixFilter) message += ` starting with "${prefixFilter}"`;
-            message += ` with ≤${maxWords} words found`;
+            message += ` with 3-${maxWords} words found`;  // Updated message
             resultsBox.innerHTML = `<div class="status-message">${message}</div>`;
             return;
         }
@@ -1448,4 +1461,17 @@ document.addEventListener('DOMContentLoaded', () => {
             ? '🔽 Hide words' 
             : `📋 Show ${element.closest('.rare-prefix-header').querySelector('.rare-prefix-badge').textContent}`;
     };
+    
+    // Also update the min words dropdown to show 3 as the minimum
+    const minWordsSelect = document.getElementById('rare-min-words');
+    if (minWordsSelect) {
+        // Update options to reflect 3 as minimum
+        minWordsSelect.innerHTML = `
+            <option value="3" selected>3 words (minimum)</option>
+            <option value="4">4+ words</option>
+            <option value="5">5+ words</option>
+        `;
+    }
+    
+    console.log('✅ Rare Prefix Finder Ready - Looking for prefixes with 3-6 words');
 })();
