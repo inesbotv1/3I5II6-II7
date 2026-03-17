@@ -1267,3 +1267,196 @@ document.addEventListener('DOMContentLoaded', () => {
     style.textContent = '.result-word { text-decoration: underline !important; text-underline-offset: 2px; text-decoration-thickness: 1px; text-decoration-color: var(--text-secondary) !important; }';
     document.head.appendChild(style);
 })();
+// ============================================
+// RARE PREFIX FINDER FEATURE
+// ============================================
+
+(function() {
+    console.log('🔍 Initializing Rare Prefix Finder...');
+    
+    // Check if InesBotSearcher exists and has words
+    function getWords() {
+        // Try to get words from the main searcher instance
+        if (window.inesBotSearcher && window.inesBotSearcher.words) {
+            return window.inesBotSearcher.words;
+        }
+        
+        // Fallback: look for any InesBotSearcher instance
+        for (let key in window) {
+            if (key.toLowerCase().includes('ines') && window[key] && window[key].words) {
+                return window[key].words;
+            }
+        }
+        
+        return null;
+    }
+    
+    // Store reference to the main searcher
+    window.inesBotSearcher = window.inesBotSearcher || new InesBotSearcher();
+    
+    // Toggle panel function (make it global)
+    window.toggleRarePrefixPanel = function() {
+        const panel = document.getElementById('rare-prefix-panel');
+        const icon = document.querySelector('.toggle-icon');
+        
+        if (panel) {
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                icon.textContent = '▼';
+            } else {
+                panel.style.display = 'none';
+                icon.textContent = '▶';
+            }
+        }
+    };
+    
+    // Function to find rare prefixes
+    function findRarePrefixes(words, prefixLength, maxWords, minWords = 1) {
+        const prefixCounts = new Map();
+        
+        // Count words for each prefix
+        words.forEach(word => {
+            if (word.length >= prefixLength) {
+                const prefix = word.slice(0, prefixLength).toLowerCase();
+                prefixCounts.set(prefix, (prefixCounts.get(prefix) || 0) + 1);
+            }
+        });
+        
+        // Filter and sort
+        const rarePrefixes = [];
+        prefixCounts.forEach((count, prefix) => {
+            if (count >= minWords && count <= maxWords) {
+                // Get example words
+                const examples = words
+                    .filter(w => w.toLowerCase().startsWith(prefix))
+                    .slice(0, 5);
+                
+                rarePrefixes.push({
+                    prefix: prefix,
+                    count: count,
+                    examples: examples
+                });
+            }
+        });
+        
+        // Sort by count (ascending), then alphabetically
+        rarePrefixes.sort((a, b) => {
+            if (a.count !== b.count) return a.count - b.count;
+            return a.prefix.localeCompare(b.prefix);
+        });
+        
+        return rarePrefixes;
+    }
+    
+    // Function to display results
+    function displayRarePrefixes(prefixes, prefixLength, maxWords) {
+        const resultsDiv = document.getElementById('rare-prefix-results');
+        if (!resultsDiv) return;
+        
+        if (prefixes.length === 0) {
+            resultsDiv.innerHTML = `
+                <div class="status-message" style="margin: 0;">
+                    No ${prefixLength}-letter prefixes found with ≤${maxWords} words
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div class="rare-prefix-stats">
+                Found ${prefixes.length} rare ${prefixLength}-letter prefixes (${prefixes[0].count} to ${prefixes[prefixes.length-1].count} words)
+            </div>
+        `;
+        
+        prefixes.forEach(item => {
+            const exampleText = item.examples.slice(0, 3).join(', ');
+            const moreCount = item.examples.length > 3 ? item.examples.length - 3 : 0;
+            
+            html += `
+                <div class="rare-prefix-item">
+                    <span class="rare-prefix-badge">${item.count} words</span>
+                    <span class="rare-prefix-word">"${item.prefix}"</span>
+                    <span class="rare-prefix-examples" onclick="toggleExamples(this)">
+                        📋 ${item.count} words
+                    </span>
+                    <div class="rare-prefix-words-list">
+                        ${item.examples.map(w => `<span>${w}</span>`).join('')}
+                        ${moreCount > 0 ? `<span>... and ${moreCount} more</span>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        resultsDiv.innerHTML = html;
+    }
+    
+    // Make toggleExamples function global
+    window.toggleExamples = function(element) {
+        const wordsList = element.nextElementSibling;
+        if (wordsList && wordsList.classList.contains('rare-prefix-words-list')) {
+            wordsList.classList.toggle('show');
+            element.textContent = wordsList.classList.contains('show') ? '🔽 Hide words' : `📋 ${element.closest('.rare-prefix-item').querySelector('.rare-prefix-badge').textContent}`;
+        }
+    };
+    
+    // Add click handler for the find button
+    function setupRarePrefixFinder() {
+        const findBtn = document.getElementById('find-rare-prefixes-btn');
+        if (!findBtn) {
+            console.error('Rare prefix button not found!');
+            return;
+        }
+        
+        findBtn.addEventListener('click', () => {
+            const words = getWords();
+            
+            if (!words || words.length === 0) {
+                const resultsDiv = document.getElementById('rare-prefix-results');
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = `
+                        <div class="error-message" style="margin: 0;">
+                            ⚠️ No words loaded yet. Please wait for the word list to load.
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
+            const prefixLength = parseInt(document.getElementById('prefix-length').value);
+            const maxWords = parseInt(document.getElementById('max-words').value);
+            const minWords = parseInt(document.getElementById('min-words').value);
+            
+            const rarePrefixes = findRarePrefixes(words, prefixLength, maxWords, minWords);
+            displayRarePrefixes(rarePrefixes, prefixLength, maxWords);
+        });
+    }
+    
+    // Add keyboard shortcut (Ctrl+Shift+P) to open rare prefix finder
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+            e.preventDefault();
+            const panel = document.getElementById('rare-prefix-panel');
+            if (panel && panel.style.display === 'none') {
+                toggleRarePrefixPanel();
+            }
+            document.getElementById('find-rare-prefixes-btn')?.click();
+        }
+    });
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupRarePrefixFinder);
+    } else {
+        setupRarePrefixFinder();
+    }
+    
+    // Also run after each search to ensure we can access words
+    const originalSearch = InesBotSearcher.prototype.performSearch;
+    InesBotSearcher.prototype.performSearch = function() {
+        originalSearch.call(this);
+        // Update reference to words
+        window.inesBotSearcher = this;
+    };
+    
+    console.log('✅ Rare Prefix Finder ready! Press Ctrl+Shift+P to quickly open it.');
+})();
