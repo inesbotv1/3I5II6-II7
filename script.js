@@ -358,7 +358,7 @@ function makeWordsClickable() {
     const rareSection = document.getElementById('rare-finder-section');
     const searchFilters = document.querySelector('.search-filters');
     
-// mode switching with separate state INCLUDING RESULTS
+// mode switching with separate state
 if (normalBtn && rareBtn && normalSection && rareSection) {
     // Store values for each mode
     let normalState = {
@@ -380,72 +380,78 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
     };
     
     normalBtn.addEventListener('click', () => {
-        // Save rare state before switching (including results)
-        rareState = {
-            prefix: document.getElementById('rare-prefix').value,
-            prefixLength: document.getElementById('rare-prefix-length').value,
-            maxWords: document.getElementById('rare-max-words').value,
-            filterMode: document.querySelector('input[name="filter-mode"]:checked')?.value || 'max-words',
-            sort: document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc',
-            results: document.getElementById('results-box').innerHTML,
-            resultCount: document.getElementById('result-count').textContent
-        };
-        
-        // Restore normal state
-        document.getElementById('prefix-input').value = normalState.prefix;
-        document.getElementById('suffix-input').value = normalState.suffix;
-        
-        document.querySelectorAll('input[name="sort"]').forEach(radio => {
-            if (radio.value === normalState.sort) radio.checked = true;
-        });
-        
-        // Restore normal results
-        document.getElementById('results-box').innerHTML = normalState.results;
-        document.getElementById('result-count').textContent = normalState.resultCount;
-        
-        normalBtn.classList.add('mode-active');
-        rareBtn.classList.remove('mode-active');
-        normalSection.style.display = 'block';
-        rareSection.style.display = 'none';
-        if (searchFilters) searchFilters.style.display = 'grid';
+        // Only switch if we're not already in normal mode
+        if (!normalBtn.classList.contains('mode-active')) {
+            // Save rare state before switching (including results)
+            rareState = {
+                prefix: document.getElementById('rare-prefix').value,
+                prefixLength: document.getElementById('rare-prefix-length').value,
+                maxWords: document.getElementById('rare-max-words').value,
+                filterMode: document.querySelector('input[name="filter-mode"]:checked')?.value || 'max-words',
+                sort: document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc',
+                results: document.getElementById('results-box').innerHTML,
+                resultCount: document.getElementById('result-count').textContent
+            };
+            
+            // Restore normal state
+            document.getElementById('prefix-input').value = normalState.prefix;
+            document.getElementById('suffix-input').value = normalState.suffix;
+            
+            document.querySelectorAll('input[name="sort"]').forEach(radio => {
+                if (radio.value === normalState.sort) radio.checked = true;
+            });
+            
+            // Restore normal results
+            document.getElementById('results-box').innerHTML = normalState.results;
+            document.getElementById('result-count').textContent = normalState.resultCount;
+            
+            normalBtn.classList.add('mode-active');
+            rareBtn.classList.remove('mode-active');
+            normalSection.style.display = 'block';
+            rareSection.style.display = 'none';
+            if (searchFilters) searchFilters.style.display = 'grid';
+        }
     });
     
     rareBtn.addEventListener('click', () => {
-        // Save normal state before switching (including results)
-        normalState = {
-            prefix: document.getElementById('prefix-input').value,
-            suffix: document.getElementById('suffix-input').value,
-            sort: document.querySelector('input[name="sort"]:checked')?.value || 'none',
-            results: document.getElementById('results-box').innerHTML,
-            resultCount: document.getElementById('result-count').textContent
-        };
-        
-        // Restore rare state
-        document.getElementById('rare-prefix').value = rareState.prefix;
-        document.getElementById('rare-prefix-length').value = rareState.prefixLength;
-        document.getElementById('rare-max-words').value = rareState.maxWords;
-        
-        // Restore filter mode radio
-        const filterRadio = document.querySelector(`input[name="filter-mode"][value="${rareState.filterMode}"]`);
-        if (filterRadio) {
-            filterRadio.checked = true;
-            filterRadio.dispatchEvent(new Event('change'));
+        // Only switch if we're not already in rare mode
+        if (!rareBtn.classList.contains('mode-active')) {
+            // Save normal state before switching (including results)
+            normalState = {
+                prefix: document.getElementById('prefix-input').value,
+                suffix: document.getElementById('suffix-input').value,
+                sort: document.querySelector('input[name="sort"]:checked')?.value || 'none',
+                results: document.getElementById('results-box').innerHTML,
+                resultCount: document.getElementById('result-count').textContent
+            };
+            
+            // Restore rare state
+            document.getElementById('rare-prefix').value = rareState.prefix;
+            document.getElementById('rare-prefix-length').value = rareState.prefixLength;
+            document.getElementById('rare-max-words').value = rareState.maxWords;
+            
+            // Restore filter mode radio
+            const filterRadio = document.querySelector(`input[name="filter-mode"][value="${rareState.filterMode}"]`);
+            if (filterRadio) {
+                filterRadio.checked = true;
+                filterRadio.dispatchEvent(new Event('change'));
+            }
+            
+            // Restore sort radio
+            const sortRadio = document.querySelector(`input[name="rare-sort"][value="${rareState.sort}"]`);
+            if (sortRadio) sortRadio.checked = true;
+            
+            // Restore rare results
+            document.getElementById('results-box').innerHTML = rareState.results;
+            document.getElementById('result-count').textContent = rareState.resultCount;
+            
+            normalBtn.classList.remove('mode-active');
+            rareBtn.classList.add('mode-active');
+            normalSection.style.display = 'none';
+            rareSection.style.display = 'block';
+            if (searchFilters) searchFilters.style.display = 'none';
+            loadRareWords();
         }
-        
-        // Restore sort radio
-        const sortRadio = document.querySelector(`input[name="rare-sort"][value="${rareState.sort}"]`);
-        if (sortRadio) sortRadio.checked = true;
-        
-        // Restore rare results
-        document.getElementById('results-box').innerHTML = rareState.results;
-        document.getElementById('result-count').textContent = rareState.resultCount;
-        
-        normalBtn.classList.remove('mode-active');
-        rareBtn.classList.add('mode-active');
-        normalSection.style.display = 'none';
-        rareSection.style.display = 'block';
-        if (searchFilters) searchFilters.style.display = 'none';
-        loadRareWords();
     });
 }
     
