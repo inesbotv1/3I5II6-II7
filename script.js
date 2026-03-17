@@ -404,7 +404,7 @@ function makeWordsClickable() {
         }
     }
     
- // NEW: Create the filter mode UI - IMPROVED DESIGN
+// NEW: Create the filter mode UI - IMPROVED DESIGN
 function createFilterModeUI() {
     const rareSection = document.getElementById('rare-finder-section');
     if (!rareSection) return;
@@ -426,14 +426,14 @@ function createFilterModeUI() {
             <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); transition: all 0.2s ease;" 
                    onmouseover="this.style.background='var(--bg-hover)'" 
                    onmouseout="this.style.background='var(--bg-tertiary)'">
-                <input type="radio" name="filter-mode" value="max-words" checked style="accent-color: var(--primary-color); width: 16px; height: 16px; margin: 0;"> 
-                <span style="font-weight: 500;">Max Words: <span id="mode-max-words-indicator" style="background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 20px; margin-left: 4px;">2</span></span>
+                <input type="radio" name="filter-mode" value="max-words" checked style="accent-color: var(--text-primary); width: 16px; height: 16px; margin: 0;"> 
+                <span style="font-weight: 500; color: var(--text-primary);">Max Words: <span id="mode-max-words-indicator" style="background: var(--text-secondary); color: var(--bg-primary); padding: 2px 8px; border-radius: 20px; margin-left: 4px;">2</span></span>
             </label>
             <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); transition: all 0.2s ease;"
                    onmouseover="this.style.background='var(--bg-hover)'" 
                    onmouseout="this.style.background='var(--bg-tertiary)'">
-                <input type="radio" name="filter-mode" value="longer-than" style="accent-color: var(--primary-color); width: 16px; height: 16px; margin: 0;"> 
-                <span style="font-weight: 500;">Longer Than 6 Letters</span>
+                <input type="radio" name="filter-mode" value="longer-than" style="accent-color: var(--text-primary); width: 16px; height: 16px; margin: 0;"> 
+                <span style="font-weight: 500; color: var(--text-primary);">Longer Than 6 Letters</span>
             </label>
         </div>
     `;
@@ -441,12 +441,16 @@ function createFilterModeUI() {
     // Add active state styling for selected radio
     const style = document.createElement('style');
     style.textContent = `
-        #filter-mode-controls input[type="radio"]:checked + span {
-            color: var(--primary-color);
-        }
         #filter-mode-controls label:has(input:checked) {
-            background: var(--primary-color-light);
-            border-color: var(--primary-color);
+            background: var(--text-primary) !important;
+            border-color: var(--text-primary) !important;
+        }
+        #filter-mode-controls label:has(input:checked) span {
+            color: var(--bg-primary) !important;
+        }
+        #filter-mode-controls label:has(input:checked) #mode-max-words-indicator {
+            background: var(--bg-primary) !important;
+            color: var(--text-primary) !important;
         }
     `;
     document.head.appendChild(style);
@@ -468,8 +472,34 @@ function createFilterModeUI() {
             // Update label backgrounds
             document.querySelectorAll('#filter-mode-controls label').forEach(label => {
                 label.style.background = 'var(--bg-tertiary)';
+                label.style.borderColor = 'var(--border-color)';
+                
+                // Reset text colors for non-selected labels
+                const span = label.querySelector('span');
+                if (span) span.style.color = 'var(--text-primary)';
+                
+                // Reset indicator for max-words label
+                const indicator = label.querySelector('#mode-max-words-indicator');
+                if (indicator) {
+                    indicator.style.background = 'var(--text-secondary)';
+                    indicator.style.color = 'var(--bg-primary)';
+                }
             });
-            this.closest('label').style.background = 'var(--primary-color-light)';
+            
+            // Style the selected label
+            const selectedLabel = this.closest('label');
+            selectedLabel.style.background = 'var(--text-primary)';
+            selectedLabel.style.borderColor = 'var(--text-primary)';
+            
+            const selectedSpan = selectedLabel.querySelector('span');
+            if (selectedSpan) selectedSpan.style.color = 'var(--bg-primary)';
+            
+            // Style indicator if it's the max-words label
+            const selectedIndicator = selectedLabel.querySelector('#mode-max-words-indicator');
+            if (selectedIndicator) {
+                selectedIndicator.style.background = 'var(--bg-primary)';
+                selectedIndicator.style.color = 'var(--text-primary)';
+            }
             
             if (this.value === 'max-words') {
                 // Enable max words select
@@ -496,7 +526,18 @@ function createFilterModeUI() {
     setTimeout(() => {
         const checkedRadio = document.querySelector('input[name="filter-mode"]:checked');
         if (checkedRadio) {
-            checkedRadio.closest('label').style.background = 'var(--primary-color-light)';
+            const selectedLabel = checkedRadio.closest('label');
+            selectedLabel.style.background = 'var(--text-primary)';
+            selectedLabel.style.borderColor = 'var(--text-primary)';
+            
+            const selectedSpan = selectedLabel.querySelector('span');
+            if (selectedSpan) selectedSpan.style.color = 'var(--bg-primary)';
+            
+            const selectedIndicator = selectedLabel.querySelector('#mode-max-words-indicator');
+            if (selectedIndicator) {
+                selectedIndicator.style.background = 'var(--bg-primary)';
+                selectedIndicator.style.color = 'var(--text-primary)';
+            }
         }
     }, 50);
 }
