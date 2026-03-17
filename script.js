@@ -493,39 +493,70 @@ function makeWordsClickable() {
         if (e.key === 'Enter') document.getElementById('rare-search-btn').click();
     });
     
-// display results
+// Display results
 function displayResults(results, prefixFilter, prefixLength, maxWords, wordSet) {
     const resultsBox = document.getElementById('results-box');
+    const pageSize = 10;
+    let currentPage = 0;
     
     if (results.length === 0) {
         resultsBox.innerHTML = `<div class="status-message">No ${prefixLength}-letter prefixes with 2-${maxWords} words found</div>`;
         return;
     }
     
-    let html = `<div class="rare-stats">Found ${results.length} prefixes with 2-${maxWords} words</div>`;
-    
-    results.forEach(r => {
-        const isWord = wordSet.has(r.prefix);
-        const badge = isWord 
-            ? '<span style="background:#4CAF50; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">word</span>' 
-            : '<span style="background:#FF9800; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">ends with</span>';
+    function renderPage(page) {
+        const start = page * pageSize;
+        const end = Math.min(start + pageSize, results.length);
+        const pageResults = results.slice(start, end);
         
-        // store the words as data attributes
-        const wordsData = encodeURIComponent(JSON.stringify(r.words));
+        let html = `<div class="rare-stats">Found ${results.length} prefixes with 2-${maxWords} words (showing ${start+1}-${end} of ${results.length})</div>`;
         
-        html += `
-            <div class="rare-prefix-item" data-words="${wordsData}">
-                <div class="rare-prefix-header">
-                    <span class="rare-prefix-badge">${r.count} words</span>
-                    <span class="rare-prefix-value">"${r.prefix}" ${badge}</span>
-                    <span class="rare-prefix-toggle" onclick="toggleWords(this)">Show</span>
+        pageResults.forEach(r => {
+            const isWord = wordSet.has(r.prefix);
+            const badge = isWord 
+                ? '<span style="background:#4CAF50; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">word</span>' 
+                : '<span style="background:#FF9800; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">ends with</span>';
+            
+            const wordsData = encodeURIComponent(JSON.stringify(r.words));
+            
+            html += `
+                <div class="rare-prefix-item" data-words="${wordsData}">
+                    <div class="rare-prefix-header">
+                        <span class="rare-prefix-badge">${r.count} words</span>
+                        <span class="rare-prefix-value">"${r.prefix}" ${badge}</span>
+                        <span class="rare-prefix-toggle" onclick="toggleWords(this)">📋 Show</span>
+                    </div>
+                    <div class="rare-prefix-words" style="display:none; margin-top:10px; padding:10px; background:var(--bg-tertiary); border-radius:4px;"></div>
                 </div>
-                <div class="rare-prefix-words" style="display:none; margin-top:10px; padding:10px; background:var(--bg-tertiary); border-radius:4px;"></div>
-            </div>
-        `;
-    });
+            `;
+        });
+        
+        // Add More button if there are more results
+        if (end < results.length) {
+            html += `
+                <div style="text-align: center; margin-top: 20px; padding: 10px;">
+                    <button class="btn btn-search" onclick="loadMorePrefixes()" style="width: auto; padding: 8px 20px;">
+                        Load Next ${Math.min(pageSize, results.length - end)} More ▼
+                    </button>
+                </div>
+            `;
+        }
+        
+        resultsBox.innerHTML = html;
+        window.currentPage = page;
+        window.results = results;
+        window.pageSize = pageSize;
+        window.prefixFilter = prefixFilter;
+        window.prefixLength = prefixLength;
+        window.maxWords = maxWords;
+        window.wordSet = wordSet;
+    }
     
-    resultsBox.innerHTML = html;
+    window.loadMorePrefixes = function() {
+        renderPage(window.currentPage + 1);
+    };
+    
+    renderPage(0);
 }
 
 window.toggleWords = function(element) {
@@ -537,7 +568,7 @@ window.toggleWords = function(element) {
     if (currentWordsDiv.style.display === 'block') {
         currentWordsDiv.style.display = 'none';
         currentWordsDiv.innerHTML = '';
-        element.textContent = 'Show';
+        element.textContent = '📋 Show';
         return;
     }
     
@@ -547,7 +578,7 @@ window.toggleWords = function(element) {
         if (wordsDiv.style.display === 'block') {
             wordsDiv.style.display = 'none';
             wordsDiv.innerHTML = '';
-            toggleBtn.textContent = 'Show';
+            toggleBtn.textContent = '📋 Show';
         }
     });
     
@@ -557,7 +588,7 @@ window.toggleWords = function(element) {
     ).join('');
     
     currentWordsDiv.style.display = 'block';
-    element.textContent = 'Hide';
+    element.textContent = '🔽 Hide';
 };
     
     // da dropdown
