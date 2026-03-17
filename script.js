@@ -351,6 +351,200 @@ function makeWordsClickable() {
     let isLoading = false;
     let searchState = null; // Store search state for lazy loading
     
+    // Add theme-aware styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .rare-prefix-item {
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            background: var(--bg-primary);
+        }
+        
+        .rare-prefix-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: var(--bg-secondary);
+            cursor: pointer;
+        }
+        
+        .rare-prefix-badge {
+            background: var(--accent);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .rare-prefix-value {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+        
+        .rare-prefix-toggle {
+            color: var(--accent);
+            cursor: pointer;
+            padding: 5px 10px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+        
+        .rare-prefix-toggle:hover {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .rare-prefix-words {
+            display: none;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .word-chip {
+            display: inline-block;
+            background: var(--bg-primary);
+            padding: 4px 10px;
+            margin: 3px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .badge-word {
+            background: #4CAF50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            margin-left: 8px;
+        }
+        
+        .badge-ends {
+            background: #FF9800;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            margin-left: 8px;
+        }
+        
+        .rare-stats {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .load-more-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+        }
+        
+        .load-more-button {
+            width: auto;
+            padding: 10px 25px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .load-more-button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .no-more-message {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-style: italic;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .loading-more {
+            text-align: center;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            margin: 10px 0;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .status-message {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .placeholder-text {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        
+        .filter-mode-container {
+            margin: 15px 0;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 15px;
+            background: var(--bg-primary);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+        
+        .filter-option:hover {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .filter-option input[type="radio"] {
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+        
+        .max-words-indicator {
+            font-weight: bold;
+            color: #4CAF50;
+            background: var(--bg-secondary);
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+    `;
+    document.head.appendChild(style);
+    
     // get elements
     const normalBtn = document.getElementById('mode-normal');
     const rareBtn = document.getElementById('mode-rare');
@@ -404,72 +598,82 @@ function makeWordsClickable() {
         }
     }
     
-    // Create the filter mode UI (nicer version)
+    // Create the filter mode UI
     function createFilterModeUI() {
+        console.log('Creating filter mode UI...');
+        
         const rareSection = document.getElementById('rare-finder-section');
-        if (!rareSection) return;
+        if (!rareSection) {
+            console.log('Rare section not found');
+            return;
+        }
         
         // Check if controls already exist
-        if (document.getElementById('filter-mode-container')) return;
+        if (document.getElementById('filter-mode-container')) {
+            console.log('Filter mode already exists');
+            return;
+        }
+        
+        // Find the search filters to insert after
+        const searchFilters = rareSection.querySelector('.search-filters');
+        if (!searchFilters) {
+            console.log('Search filters not found');
+            return;
+        }
         
         // Create filter mode container
         const filterContainer = document.createElement('div');
         filterContainer.id = 'filter-mode-container';
-        filterContainer.style.margin = '15px 0';
-        filterContainer.style.padding = '10px';
-        filterContainer.style.background = 'var(--bg-secondary)';
-        filterContainer.style.borderRadius = '4px';
-        filterContainer.style.display = 'flex';
-        filterContainer.style.alignItems = 'center';
-        filterContainer.style.flexWrap = 'wrap';
-        filterContainer.style.gap = '15px';
+        filterContainer.className = 'filter-mode-container';
         
         filterContainer.innerHTML = `
-            <span style="font-weight: bold; color: var(--text-primary);">Filter mode:</span>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; padding: 5px 10px; background: var(--bg-primary); border-radius: 4px;">
-                    <input type="radio" name="filter-mode" value="max-words" checked> 
-                    <span>Max Words: <span id="mode-max-words-indicator" style="font-weight: bold; color: #4CAF50;">2</span></span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; padding: 5px 10px; background: var(--bg-primary); border-radius: 4px;">
-                    <input type="radio" name="filter-mode" value="longer-than"> 
-                    <span>Longer Than 6 Letters</span>
-                </label>
+            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <span style="font-weight: bold; color: var(--text-primary);">Filter mode:</span>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <label class="filter-option">
+                        <input type="radio" name="filter-mode" value="max-words" checked> 
+                        <span>Max Words: <span class="max-words-indicator" id="mode-max-words-indicator">2</span></span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="filter-mode" value="longer-than"> 
+                        <span>Longer Than 6 Letters</span>
+                    </label>
+                </div>
             </div>
         `;
         
         // Insert after the search filters
-        const searchFilters = rareSection.querySelector('.search-filters');
-        if (searchFilters) {
-            searchFilters.parentNode.insertBefore(filterContainer, searchFilters.nextSibling);
-        }
+        searchFilters.parentNode.insertBefore(filterContainer, searchFilters.nextSibling);
+        console.log('Filter mode UI created successfully');
         
         // Add event listeners to radio buttons
         const modeRadios = document.querySelectorAll('input[name="filter-mode"]');
         const maxWordsSelect = document.getElementById('rare-max-words');
         
-        modeRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'max-words') {
-                    // Enable max words select
-                    maxWordsSelect.disabled = false;
-                    maxWordsSelect.style.opacity = '1';
-                    maxWordsSelect.style.cursor = 'pointer';
-                    // Update indicator
-                    document.getElementById('mode-max-words-indicator').textContent = maxWordsSelect.value;
-                } else {
-                    // Disable max words select
-                    maxWordsSelect.disabled = true;
-                    maxWordsSelect.style.opacity = '0.5';
-                    maxWordsSelect.style.cursor = 'not-allowed';
-                }
+        if (maxWordsSelect) {
+            modeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'max-words') {
+                        // Enable max words select
+                        maxWordsSelect.disabled = false;
+                        maxWordsSelect.style.opacity = '1';
+                        maxWordsSelect.style.cursor = 'pointer';
+                        // Update indicator
+                        document.getElementById('mode-max-words-indicator').textContent = maxWordsSelect.value;
+                    } else {
+                        // Disable max words select
+                        maxWordsSelect.disabled = true;
+                        maxWordsSelect.style.opacity = '0.5';
+                        maxWordsSelect.style.cursor = 'not-allowed';
+                    }
+                });
             });
-        });
-        
-        // Update indicator when max words changes
-        maxWordsSelect.addEventListener('change', function() {
-            document.getElementById('mode-max-words-indicator').textContent = this.value;
-        });
+            
+            // Update indicator when max words changes
+            maxWordsSelect.addEventListener('change', function() {
+                document.getElementById('mode-max-words-indicator').textContent = this.value;
+            });
+        }
     }
     
     // search button 
@@ -487,8 +691,11 @@ function makeWordsClickable() {
         const prefixLength = parseInt(document.getElementById('rare-prefix-length').value);
         
         // Get filter mode
-        const filterMode = document.querySelector('input[name="filter-mode"]:checked')?.value || 'max-words';
+        const filterModeRadio = document.querySelector('input[name="filter-mode"]:checked');
+        const filterMode = filterModeRadio ? filterModeRadio.value : 'max-words';
         const maxWords = filterMode === 'max-words' ? parseInt(document.getElementById('rare-max-words').value) : null;
+        
+        console.log('Search with filter mode:', filterMode);
         
         // validate input
         if (prefixFilter && !/^[a-z]+$/.test(prefixFilter)) {
@@ -591,10 +798,6 @@ function makeWordsClickable() {
                 const statsDiv = document.createElement('div');
                 statsDiv.className = 'rare-stats';
                 statsDiv.id = 'rare-stats-header';
-                statsDiv.style.marginBottom = '15px';
-                statsDiv.style.padding = '10px';
-                statsDiv.style.background = 'var(--bg-secondary)';
-                statsDiv.style.borderRadius = '4px';
                 statsDiv.innerHTML = `<strong>Found ${validPrefixes.length} prefixes</strong> with ${modeDescription}`;
                 resultsBox.appendChild(statsDiv);
             }
@@ -609,7 +812,7 @@ function makeWordsClickable() {
                 } else {
                     message = `No ${prefixLength}-letter prefixes with words longer than 6 letters found`;
                 }
-                resultsBox.innerHTML = `<div class="status-message" style="padding: 20px; text-align: center;">${message}</div>`;
+                resultsBox.innerHTML = `<div class="status-message">${message}</div>`;
             }
             
         }, 10);
@@ -638,11 +841,6 @@ function makeWordsClickable() {
         // Show loading indicator
         const loadingDiv = document.createElement('div');
         loadingDiv.className = 'loading-more';
-        loadingDiv.style.textAlign = 'center';
-        loadingDiv.style.padding = '15px';
-        loadingDiv.style.background = 'var(--bg-secondary)';
-        loadingDiv.style.borderRadius = '4px';
-        loadingDiv.style.margin = '10px 0';
         loadingDiv.innerHTML = '⏳ Loading more prefixes...';
         resultsBox.appendChild(loadingDiv);
         
@@ -675,29 +873,24 @@ function makeWordsClickable() {
                 
                 if (isValid) {
                     const isWord = searchState.wordSet.has(p.prefix);
-                    const badge = isWord 
-                        ? '<span style="background:#4CAF50; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">word</span>' 
-                        : '<span style="background:#FF9800; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">ends with</span>';
+                    const badgeClass = isWord ? 'badge-word' : 'badge-ends';
+                    const badgeText = isWord ? 'word' : 'ends with';
                     
                     const wordsData = encodeURIComponent(JSON.stringify(words));
                     
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'rare-prefix-item';
                     itemDiv.setAttribute('data-words', wordsData);
-                    itemDiv.style.marginBottom = '10px';
-                    itemDiv.style.border = '1px solid var(--border-color)';
-                    itemDiv.style.borderRadius = '4px';
-                    itemDiv.style.overflow = 'hidden';
                     
                     itemDiv.innerHTML = `
-                        <div class="rare-prefix-header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg-secondary); cursor: pointer;" onclick="event.stopPropagation(); window.toggleWords(this.parentNode.querySelector('.rare-prefix-toggle'))">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span class="rare-prefix-badge" style="background: var(--accent); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">${p.count} words</span>
-                                <span class="rare-prefix-value" style="font-weight: bold;">"${p.prefix}" ${badge}</span>
+                        <div class="rare-prefix-header" onclick="event.stopPropagation(); this.querySelector('.rare-prefix-toggle').click()">
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <span class="rare-prefix-badge">${p.count} words</span>
+                                <span class="rare-prefix-value">"${p.prefix}" <span class="${badgeClass}">${badgeText}</span></span>
                             </div>
-                            <span class="rare-prefix-toggle" style="color: var(--accent); cursor: pointer; padding: 5px 10px;" onclick="event.stopPropagation(); window.toggleWords(this)">Show</span>
+                            <span class="rare-prefix-toggle" onclick="event.stopPropagation(); window.toggleWords(this)">Show</span>
                         </div>
-                        <div class="rare-prefix-words" style="display:none; padding: 15px; background: var(--bg-tertiary); border-top: 1px solid var(--border-color);"></div>
+                        <div class="rare-prefix-words"></div>
                     `;
                     
                     resultsBox.appendChild(itemDiv);
@@ -712,15 +905,12 @@ function makeWordsClickable() {
             if (nextStart < allPrefixes.length) {
                 const loadMoreDiv = document.createElement('div');
                 loadMoreDiv.className = 'load-more-container';
-                loadMoreDiv.style.textAlign = 'center';
-                loadMoreDiv.style.margin = '20px 0';
-                loadMoreDiv.style.padding = '10px';
                 
                 const remainingCount = allPrefixes.length - nextStart;
                 const nextBatchSize = Math.min(pageSize, remainingCount);
                 
                 loadMoreDiv.innerHTML = `
-                    <button class="btn btn-search" onclick="window.loadMorePrefixes()" style="width: auto; padding: 10px 25px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1em;">
+                    <button class="load-more-button" onclick="window.loadMorePrefixes()">
                         Load Next ${nextBatchSize} Prefixes (${remainingCount} remaining) ▼
                     </button>
                 `;
@@ -729,14 +919,7 @@ function makeWordsClickable() {
                 // All loaded
                 const finishedDiv = document.createElement('div');
                 finishedDiv.className = 'no-more-message';
-                finishedDiv.style.textAlign = 'center';
-                finishedDiv.style.padding = '20px';
-                finishedDiv.style.color = 'var(--text-secondary)';
-                finishedDiv.style.fontStyle = 'italic';
-                finishedDiv.style.background = 'var(--bg-secondary)';
-                finishedDiv.style.borderRadius = '4px';
-                finishedDiv.style.margin = '10px 0';
-                finishedDiv.innerHTML = '🏁 All ${allPrefixes.length} prefixes loaded';
+                finishedDiv.innerHTML = `🏁 All ${allPrefixes.length} prefixes loaded`;
                 resultsBox.appendChild(finishedDiv);
             }
             
@@ -762,7 +945,7 @@ function makeWordsClickable() {
         }
         
         document.querySelectorAll('input[name="rare-sort"]')[0].checked = true;
-        document.getElementById('results-box').innerHTML = '<p class="placeholder-text" style="padding: 20px; text-align: center; color: var(--text-secondary);">Filters cleared</p>';
+        document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Filters cleared</p>';
         document.getElementById('result-count').textContent = '0';
         searchState = null;
     });
@@ -805,7 +988,7 @@ function makeWordsClickable() {
         try {
             const words = JSON.parse(decodeURIComponent(wordsData));
             currentWordsDiv.innerHTML = words.map(w => 
-                `<span style="display:inline-block; background:var(--bg-secondary); padding:4px 10px; margin:3px; border-radius:4px; border:1px solid var(--border-color);">${w}</span>`
+                `<span class="word-chip">${w}</span>`
             ).join('');
             
             currentWordsDiv.style.display = 'block';
@@ -815,11 +998,14 @@ function makeWordsClickable() {
         }
     };
     
-    // Initialize everything when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
+    // Initialize everything
+    function initialize() {
+        console.log('Initializing Rare Prefix Finder...');
+        
+        // Create filter mode UI
         createFilterModeUI();
         
-        // da dropdown
+        // Setup max words dropdown
         const maxSelect = document.getElementById('rare-max-words');
         if (maxSelect) {
             maxSelect.innerHTML = `
@@ -834,5 +1020,13 @@ function makeWordsClickable() {
                 <option value="10">10 words</option>
             `;
         }
-    });
+    }
+    
+    // Run initialization based on DOM state
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+        // DOM is already ready
+        initialize();
+    }
 })();
