@@ -32,8 +32,7 @@
         </div>
 
         <div class="control-panel">
-            <!-- Removed the Load Words button -->
-            
+            <!-- Search filters (shared) -->
             <div class="search-filters">
                 <div class="filter-group">
                     <label for="prefix-input">Starts with:</label>
@@ -46,78 +45,86 @@
                 </div>
             </div>
 
-        <div class="mode-toggle-container">
-    <div class="mode-toggle">
-        <button id="mode-normal" class="mode-btn mode-active">🔍 Normal Search</button>
-        <button id="mode-rare" class="mode-btn">🔎 Rare Prefix Finder</button>
-    </div>
-</div>
+            <!-- Mode Toggle -->
+            <div class="mode-toggle-container">
+                <div class="mode-toggle">
+                    <button id="mode-normal" class="mode-btn mode-active">🔍 Normal Word Search</button>
+                    <button id="mode-rare" class="mode-btn">🔎 Rare Prefix Finder</button>
+                </div>
+            </div>
 
-<div class="sort-options" id="normal-sort-options">
-    <span class="sort-label">Sort by:</span>
-    <label class="radio-label">
-        <input type="radio" name="sort" value="none" checked> Default
-    </label>
-    <label class="radio-label">
-        <input type="radio" name="sort" value="shortest"> Shortest First
-    </label>
-    <label class="radio-label">
-        <input type="radio" name="sort" value="longest"> Longest First
-    </label>
-    <label class="radio-label">
-        <input type="radio" name="sort" value="alpha"> Alphabetical
-    </label>
-</div>
+            <!-- NORMAL SEARCH SECTION (visible by default) -->
+            <div id="normal-search-section">
+                <div class="sort-options">
+                    <span class="sort-label">Sort by:</span>
+                    <label class="radio-label">
+                        <input type="radio" name="sort" value="none" checked> Default
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="sort" value="shortest"> Shortest First
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="sort" value="longest"> Longest First
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="sort" value="alpha"> Alphabetical
+                    </label>
+                </div>
 
-<!-- Rare Finder Controls (hidden by default) -->
-<div class="rare-controls" id="rare-controls" style="display: none;">
-    <div class="rare-controls-grid">
-        <div class="filter-group">
-            <label for="rare-prefix-length">Prefix length:</label>
-            <select id="rare-prefix-length" class="filter-input">
-                <option value="2">2 letters</option>
-                <option value="3" selected>3 letters</option>
-                <option value="4">4 letters</option>
-            </select>
-        </div>
-        
-        <div class="filter-group">
-            <label for="rare-max-words">Max words (rare if ≤):</label>
-            <select id="rare-max-words" class="filter-input">
-                <option value="5">5 words</option>
-                <option value="6" selected>6 words</option>
-                <option value="7">7 words</option>
-                <option value="8">8 words</option>
-            </select>
-        </div>
-        
-        <div class="filter-group">
-            <label for="rare-min-words">Min words:</label>
-            <select id="rare-min-words" class="filter-input">
-                <option value="1">1 word (rarest)</option>
-                <option value="2">2+ words</option>
-                <option value="3">3+ words</option>
-            </select>
-        </div>
-    </div>
-    
-    <div class="rare-sort-options">
-        <span class="sort-label">Sort rare by:</span>
-        <label class="radio-label">
-            <input type="radio" name="rare-sort" value="count-asc" checked> Count (fewest first)
-        </label>
-        <label class="radio-label">
-            <input type="radio" name="rare-sort" value="count-desc"> Count (most first)
-        </label>
-        <label class="radio-label">
-            <input type="radio" name="rare-sort" value="alpha"> Alphabetical
-        </label>
-    </div>
-</div>
+                <div class="action-buttons">
+                    <button id="search-btn" class="btn btn-search">Search</button>
+                    <button id="clear-btn" class="btn btn-clear">Clear All</button>
+                </div>
+            </div>
 
-            <div class="action-buttons">
-                <button id="search-btn" class="btn btn-search">Search</button>
-                <button id="clear-btn" class="btn btn-clear">Clear All</button>
+            <!-- RARE FINDER SECTION (hidden by default) -->
+            <div id="rare-finder-section" style="display: none;">
+                <!-- Rare Finder Filters -->
+                <div class="rare-filters">
+                    <div class="filter-group">
+                        <label for="rare-prefix">Prefix starts with (optional):</label>
+                        <input type="text" id="rare-prefix" class="filter-input" placeholder="e.g., 'a' for words starting with a">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="rare-prefix-length">Prefix length:</label>
+                        <select id="rare-prefix-length" class="filter-input">
+                            <option value="2">2 letters</option>
+                            <option value="3" selected>3 letters</option>
+                            <option value="4">4 letters</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="rare-max-words">Maximum words (rare if ≤):</label>
+                        <select id="rare-max-words" class="filter-input">
+                            <option value="5">5 words</option>
+                            <option value="6" selected>6 words</option>
+                            <option value="7">7 words</option>
+                            <option value="8">8 words</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Rare Finder Sort Options -->
+                <div class="rare-sort-options">
+                    <span class="sort-label">Sort results by:</span>
+                    <label class="radio-label">
+                        <input type="radio" name="rare-sort" value="count-asc" checked> Count (fewest first)
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="rare-sort" value="count-desc"> Count (most first)
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="rare-sort" value="alpha"> Alphabetical
+                    </label>
+                </div>
+                
+                <!-- Rare Finder Action Buttons -->
+                <div class="action-buttons" style="margin-top: 20px;">
+                    <button id="rare-search-btn" class="btn btn-search">Find Rare Prefixes</button>
+                    <button id="rare-clear-btn" class="btn btn-clear">Clear Rare Filters</button>
+                </div>
             </div>
         </div>
 
