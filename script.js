@@ -358,25 +358,81 @@ function makeWordsClickable() {
     const rareSection = document.getElementById('rare-finder-section');
     const searchFilters = document.querySelector('.search-filters');
     
-    // mode switching
-    if (normalBtn && rareBtn && normalSection && rareSection) {
-        normalBtn.addEventListener('click', () => {
-            normalBtn.classList.add('mode-active');
-            rareBtn.classList.remove('mode-active');
-            normalSection.style.display = 'block';
-            rareSection.style.display = 'none';
-            if (searchFilters) searchFilters.style.display = 'grid';
+// mode switching with separate state
+if (normalBtn && rareBtn && normalSection && rareSection) {
+    // Store values for each mode
+    let normalState = {
+        prefix: '',
+        suffix: '',
+        sort: 'none'
+    };
+    
+    let rareState = {
+        prefix: '',
+        prefixLength: '2',
+        maxWords: '2',
+        filterMode: 'max-words',
+        sort: 'count-asc'
+    };
+    
+    normalBtn.addEventListener('click', () => {
+        // Save rare state before switching
+        rareState = {
+            prefix: document.getElementById('rare-prefix').value,
+            prefixLength: document.getElementById('rare-prefix-length').value,
+            maxWords: document.getElementById('rare-max-words').value,
+            filterMode: document.querySelector('input[name="filter-mode"]:checked')?.value || 'max-words',
+            sort: document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc'
+        };
+        
+        // Restore normal state
+        document.getElementById('prefix-input').value = normalState.prefix;
+        document.getElementById('suffix-input').value = normalState.suffix;
+        
+        document.querySelectorAll('input[name="sort"]').forEach(radio => {
+            if (radio.value === normalState.sort) radio.checked = true;
         });
         
-        rareBtn.addEventListener('click', () => {
-            normalBtn.classList.remove('mode-active');
-            rareBtn.classList.add('mode-active');
-            normalSection.style.display = 'none';
-            rareSection.style.display = 'block';
-            if (searchFilters) searchFilters.style.display = 'none';
-            loadRareWords();
-        });
-    }
+        normalBtn.classList.add('mode-active');
+        rareBtn.classList.remove('mode-active');
+        normalSection.style.display = 'block';
+        rareSection.style.display = 'none';
+        if (searchFilters) searchFilters.style.display = 'grid';
+    });
+    
+    rareBtn.addEventListener('click', () => {
+        // Save normal state before switching
+        normalState = {
+            prefix: document.getElementById('prefix-input').value,
+            suffix: document.getElementById('suffix-input').value,
+            sort: document.querySelector('input[name="sort"]:checked')?.value || 'none'
+        };
+        
+        // Restore rare state
+        document.getElementById('rare-prefix').value = rareState.prefix;
+        document.getElementById('rare-prefix-length').value = rareState.prefixLength;
+        document.getElementById('rare-max-words').value = rareState.maxWords;
+        
+        // Restore filter mode radio
+        const filterRadio = document.querySelector(`input[name="filter-mode"][value="${rareState.filterMode}"]`);
+        if (filterRadio) {
+            filterRadio.checked = true;
+            // Trigger the change event to update UI
+            filterRadio.dispatchEvent(new Event('change'));
+        }
+        
+        // Restore sort radio
+        const sortRadio = document.querySelector(`input[name="rare-sort"][value="${rareState.sort}"]`);
+        if (sortRadio) sortRadio.checked = true;
+        
+        normalBtn.classList.remove('mode-active');
+        rareBtn.classList.add('mode-active');
+        normalSection.style.display = 'none';
+        rareSection.style.display = 'block';
+        if (searchFilters) searchFilters.style.display = 'none';
+        loadRareWords();
+    });
+}
     
     // load words
     async function loadRareWords() {
