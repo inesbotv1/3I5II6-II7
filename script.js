@@ -566,7 +566,7 @@ function makeWordsClickable() {
                 wordSet,
                 allPrefixes: validPrefixes,
                 loadedCount: 0, // Track how many we've loaded
-                pageSize: 10,
+                pageSize: 10, // Always load 10 at a time
                 totalCount: validPrefixes.length,
                 sortOption
             };
@@ -577,9 +577,10 @@ function makeWordsClickable() {
             // Clear results box
             document.getElementById('results-box').innerHTML = '';
             
-            // Load first page
+            // Load first page (10 items)
             if (validPrefixes.length > 0) {
-                loadMoreResults();
+                // Force load first 10 items
+                loadMoreResults(true);
             } else {
                 let message = '';
                 if (filterMode === 'max-words') {
@@ -618,7 +619,7 @@ function makeWordsClickable() {
     });
     
     // Function to load more results
-    function loadMoreResults() {
+    function loadMoreResults(isFirstLoad = false) {
         if (!searchState) return;
         
         const { allPrefixes, loadedCount, pageSize, wordSet, maxWords, prefixLength, filterMode, totalCount } = searchState;
@@ -629,23 +630,27 @@ function makeWordsClickable() {
         const end = Math.min(start + pageSize, allPrefixes.length);
         const pagePrefixes = allPrefixes.slice(start, end);
         
-        // Show loading indicator
-        const resultsBox = document.getElementById('results-box');
-        
-        // Remove any existing loading indicator
-        const existingLoader = document.getElementById('loading-indicator');
-        if (existingLoader) existingLoader.remove();
-        
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'loading-message';
-        loadingDiv.id = 'loading-indicator';
-        loadingDiv.innerHTML = '⏳ Loading more prefixes...';
-        resultsBox.appendChild(loadingDiv);
+        // Show loading indicator (but not for first load since we already showed one)
+        if (!isFirstLoad) {
+            const resultsBox = document.getElementById('results-box');
+            
+            // Remove any existing loading indicator
+            const existingLoader = document.getElementById('loading-indicator');
+            if (existingLoader) existingLoader.remove();
+            
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading-message';
+            loadingDiv.id = 'loading-indicator';
+            loadingDiv.innerHTML = '⏳ Loading more prefixes...';
+            resultsBox.appendChild(loadingDiv);
+        }
         
         // Use setTimeout to prevent UI freeze when processing many words
         setTimeout(() => {
             // Remove loading indicator
-            document.getElementById('loading-indicator')?.remove();
+            if (!isFirstLoad) {
+                document.getElementById('loading-indicator')?.remove();
+            }
             
             // Process current page prefixes
             const results = pagePrefixes.map(p => {
@@ -678,7 +683,7 @@ function makeWordsClickable() {
             }).filter(r => r !== null);
             
             // Display results (append to existing)
-            displayMoreResults(results);
+            displayMoreResults(results, isFirstLoad);
             
             // Update loaded count
             searchState.loadedCount = end;
@@ -694,7 +699,7 @@ function makeWordsClickable() {
     }
     
     // Function to display additional results
-    function displayMoreResults(results) {
+    function displayMoreResults(results, isFirstLoad = false) {
         const resultsBox = document.getElementById('results-box');
         const { filterMode, maxWords, totalCount, loadedCount, wordSet } = searchState;
         
@@ -708,7 +713,11 @@ function makeWordsClickable() {
         }
         
         // If this is the first batch, show the stats
-        if (loadedCount === 0) {
+        if (loadedCount === 0 || isFirstLoad) {
+            // Remove existing stats if any
+            const existingStats = document.getElementById('rare-stats');
+            if (existingStats) existingStats.remove();
+            
             const statsDiv = document.createElement('div');
             statsDiv.className = 'rare-stats';
             statsDiv.id = 'rare-stats';
@@ -769,7 +778,7 @@ function makeWordsClickable() {
         button.onclick = function() {
             this.disabled = true;
             this.textContent = 'Loading...';
-            loadMoreResults();
+            loadMoreResults(false);
         };
         
         container.appendChild(counter);
