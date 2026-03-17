@@ -19,6 +19,57 @@ themeToggle.addEventListener('click', () => {
     }, 20);
 });
 
+// Random phrase generator
+const phrases = [
+    "We ALL fw this, right?",
+    "Keiko throwing",
+    "Zenzenzen",
+    "I´m Always Truthful About My Trades",
+    "Zenith woman harasser",
+    "#1 Nova Lover",
+    "lwiheardyoustefanimgivingthemlwsolve",
+    "Doxx yourself if you see this",
+    "Orange Juice > Apple Juice",
+    "Supercalifragilisticexpialidocious",
+    "Opp List: Lrrx, Panda, Shush, Rocksta, Croc",
+    "What traps do you use?",
+    "Yoyoyo",
+    "Oioioi",
+    "Synau",
+    "Tchambuli",
+    "Keiko throwing V2",
+    "Xilofob",
+    "Red angel wolves",
+];
+
+// Set random phrase when page loads - random order, no repeats until all seen
+document.addEventListener('DOMContentLoaded', function() {
+    const phraseElement = document.getElementById('random-phrase');
+    if (phraseElement) {
+        // Get the remaining phrases from localStorage
+        let remainingPhrases = JSON.parse(localStorage.getItem('remainingPhrases'));
+        
+        // If no remaining phrases or empty, reshuffle all phrases
+        if (!remainingPhrases || remainingPhrases.length === 0) {
+            // Create a shuffled copy of all phrases
+            remainingPhrases = [...phrases];
+            for (let i = remainingPhrases.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [remainingPhrases[i], remainingPhrases[j]] = [remainingPhrases[j], remainingPhrases[i]];
+            }
+        }
+        
+        // Pick the next phrase (first in the shuffled list)
+        const nextPhrase = remainingPhrases.shift();
+        
+        // Set the phrase
+        phraseElement.textContent = nextPhrase;
+        
+        // Save the remaining phrases
+        localStorage.setItem('remainingPhrases', JSON.stringify(remainingPhrases));
+    }
+});
+
 // main searcher class
 class InesBotSearcher {
     constructor() {
@@ -91,8 +142,6 @@ class InesBotSearcher {
             results.sort((a, b) => a.length - b.length);
         } else if (sortOption === 'longest') {
             results.sort((a, b) => b.length - a.length);
-        } else if (sortOption === 'alpha') {
-            results.sort((a, b) => a.localeCompare(b));
         }
         
         document.getElementById('result-count').textContent = results.length;
@@ -372,7 +421,7 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
     let rareState = {
         prefix: '',
         prefixLength: '2',
-        maxWords: '2',
+        maxWords: '4',
         filterMode: 'max-words',
         sort: 'count-asc',
         results: '<p class="placeholder-text">Click Search to find rare prefixes</p>',
@@ -673,7 +722,7 @@ function createFilterModeUI() {
             if (filterMode === 'max-words') {
                 // Original behavior: filter by count range (2 to maxWords)
                 prefixCounts.forEach((count, prefix) => {
-                    if (count >= 2 && count <= maxWords) {
+                    if (count >= 4 && count <= maxWords) {
                         validPrefixes.push({ prefix, count });
                     }
                 });
@@ -699,7 +748,7 @@ function createFilterModeUI() {
     
     // Now check each prefix that has at least 2 words
     wordsByPrefix.forEach((words, prefix) => {
-        if (words.length >= 2) {
+        if (words.length >= 4) {
             // Check if ALL words for this prefix are longer than 6 letters
             const allWordsLong = words.every(word => word.length > 6);
             
@@ -745,7 +794,7 @@ function createFilterModeUI() {
             } else {
                 let message = '';
                 if (filterMode === 'max-words') {
-                    message = `No ${prefixLength}-letter prefixes with 2-${maxWords} words found`;
+                    message = `No ${prefixLength}-letter prefixes with 4-${maxWords} words found`;
                 } else {
                     message = `No ${prefixLength}-letter prefixes with words longer than 6 letters found`;
                 }
@@ -758,7 +807,7 @@ function createFilterModeUI() {
     document.getElementById('rare-clear-btn')?.addEventListener('click', () => {
         document.getElementById('rare-prefix').value = '';
         document.getElementById('rare-prefix-length').value = '2';
-        document.getElementById('rare-max-words').value = '2';
+        document.getElementById('rare-max-words').value = '4';
         
         // Reset filter mode to max-words
         const maxWordsRadio = document.querySelector('input[name="filter-mode"][value="max-words"]');
@@ -885,7 +934,7 @@ function createFilterModeUI() {
         
         let modeDescription = '';
         if (filterMode === 'max-words') {
-            modeDescription = `2-${maxWords} words`;
+            modeDescription = `4-${maxWords} words`;
         } else {
             modeDescription = `words longer than 6 letters`;
         }
@@ -1017,9 +1066,7 @@ function createFilterModeUI() {
     const maxSelect = document.getElementById('rare-max-words');
     if (maxSelect) {
         maxSelect.innerHTML = `
-            <option value="2" selected>2 words</option>
-            <option value="3">3 words</option>
-            <option value="4">4 words</option>
+            <option value="4" selected>4 words</option>
             <option value="5">5 words</option>
             <option value="6">6 words</option>
             <option value="7">7 words</option>
