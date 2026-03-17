@@ -12,7 +12,7 @@
         <header>
             <div class="header-content">
                 <h1>InesBotV1</h1>
-                <p>We ALL fw this, right?</p>
+                <p id="random-phrase">We ALL fw this, right?</p>
             </div>
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
                 <span class="light-icon">☀️</span>
@@ -58,16 +58,13 @@
                 <div class="sort-options">
                     <span class="sort-label">Sort by:</span>
                     <label class="radio-label">
-                        <input type="radio" name="sort" value="none" checked> Default
+                        <input type="radio" name="sort" value="none" checked> Alphabetical
                     </label>
                     <label class="radio-label">
                         <input type="radio" name="sort" value="shortest"> Shortest First
                     </label>
                     <label class="radio-label">
                         <input type="radio" name="sort" value="longest"> Longest First
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="sort" value="alpha"> Alphabetical
                     </label>
                 </div>
 
@@ -98,8 +95,9 @@
                     <div class="filter-group">
                         <label for="rare-max-words">Maximum words (rare if ≤):</label>
                         <select id="rare-max-words" class="filter-input">
+                            <option value="4" selected>4 words</option>
                             <option value="5">5 words</option>
-                            <option value="6" selected>6 words</option>
+                            <option value="6">6 words</option>
                             <option value="7">7 words</option>
                             <option value="8">8 words</option>
                         </select>
