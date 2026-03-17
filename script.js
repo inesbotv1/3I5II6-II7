@@ -515,7 +515,7 @@ function makeWordsClickable() {
                     <div class="rare-prefix-header">
                         <span class="rare-prefix-badge">${r.count} words</span>
                         <span class="rare-prefix-value">"${r.prefix}" ${badge}</span>
-                        <span class="rare-prefix-toggle" onclick="toggleWords(this)">📋 Show</span>
+                        <span class="rare-prefix-toggle" onclick="toggleWords(this)">Show</span>
                     </div>
                     <div class="rare-prefix-words" style="display:none; margin-top:10px; padding:10px; background:var(--bg-tertiary); border-radius:4px;">
                         ${r.words.map(w => `<span style="display:inline-block; background:var(--bg-secondary); padding:2px 8px; margin:2px; border-radius:4px;">${w}</span>`).join('')}
@@ -531,10 +531,10 @@ function makeWordsClickable() {
         const wordsDiv = element.closest('.rare-prefix-item').querySelector('.rare-prefix-words');
         if (wordsDiv.style.display === 'none') {
             wordsDiv.style.display = 'block';
-            element.textContent = '🔽 Hide';
+            element.textContent = 'Hide';
         } else {
             wordsDiv.style.display = 'none';
-            element.textContent = '📋 Show';
+            element.textContent = 'Show';
         }
     };
     
