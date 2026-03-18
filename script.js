@@ -724,6 +724,54 @@ function createFilterModeUI() {
     
     // Call this after DOM is ready
     setTimeout(createFilterModeUI, 100);
+    // Update prefix length dropdown options based on selected mode
+setTimeout(function() {
+    const prefixLengthSelect = document.getElementById('rare-prefix-length');
+    const modeRadios = document.querySelectorAll('input[name="filter-mode"]');
+    
+    if (!prefixLengthSelect || !modeRadios.length) return;
+    
+    function updatePrefixLengthOptions() {
+        const selectedMode = document.querySelector('input[name="filter-mode"]:checked')?.value;
+        const currentValue = prefixLengthSelect.value;
+        
+        // Clear current options
+        prefixLengthSelect.innerHTML = '';
+        
+        if (selectedMode === 'length-compare') {
+            // Show 1-4 letters
+            prefixLengthSelect.innerHTML = `
+                <option value="1">1 letter</option>
+                <option value="2">2 letters</option>
+                <option value="3">3 letters</option>
+                <option value="4">4 letters</option>
+            `;
+        } else {
+            // Show 2-4 letters only
+            prefixLengthSelect.innerHTML = `
+                <option value="2">2 letters</option>
+                <option value="3">3 letters</option>
+                <option value="4">4 letters</option>
+            `;
+        }
+        
+        // Restore previous value if still valid
+        if (Array.from(prefixLengthSelect.options).some(opt => opt.value === currentValue)) {
+            prefixLengthSelect.value = currentValue;
+        } else {
+            prefixLengthSelect.value = '2'; // Default to 2 if previous value not available
+        }
+    }
+    
+    // Add event listeners to mode radios
+    modeRadios.forEach(radio => {
+        radio.addEventListener('change', updatePrefixLengthOptions);
+    });
+    
+    // Initial call to set correct options
+    updatePrefixLengthOptions();
+    
+}, 200); // Slight delay to ensure DOM is ready
     
     // search button - LAZY LOADING VERSION WITH NEW FILTER MODE
     document.getElementById('rare-search-btn')?.addEventListener('click', () => {
