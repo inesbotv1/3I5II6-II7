@@ -615,7 +615,7 @@ function createFilterModeUI() {
     
     <select id="length-comparison" style="padding: 6px; border-radius: 6px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
         <option value="<=">≤</option>
-        <option value=">=">=</option>
+        <option value="=">=</option>
         <option value=">=">≥</option>
     </select>
     
@@ -733,43 +733,43 @@ setTimeout(function() {
     if (!prefixLengthSelect || !modeRadios.length) return;
     
     function updatePrefixLengthOptions() {
-        const selectedMode = document.querySelector('input[name="filter-mode"]:checked')?.value;
-        const currentValue = prefixLengthSelect.value;
-        
-        // Clear current options
-        prefixLengthSelect.innerHTML = '';
-        
-        if (selectedMode === 'length-compare') {
-            // Show 1-4 letters
-            prefixLengthSelect.innerHTML = `
-                <option value="1">1 letter</option>
-                <option value="2">2 letters</option>
-                <option value="3">3 letters</option>
-                <option value="4">4 letters</option>
-            `;
+    const selectedMode = document.querySelector('input[name="filter-mode"]:checked')?.value;
+    const currentValue = prefixLengthSelect.value;
+    
+    // Clear current options
+    prefixLengthSelect.innerHTML = '';
+    
+    if (selectedMode === 'length-compare') {
+        // Show 1-4 letters
+        prefixLengthSelect.innerHTML = `
+            <option value="1">1 letter</option>
+            <option value="2">2 letters</option>
+            <option value="3">3 letters</option>
+            <option value="4">4 letters</option>
+        `;
         // Set default to 1 letter when switching to compare mode
         prefixLengthSelect.value = '1';
         
         // Also set compare length default to 1
         const compareLength = document.getElementById('compare-length');
         if (compareLength) compareLength.value = '1';
-            
-        } else {
-            // Show 2-4 letters only
-            prefixLengthSelect.innerHTML = `
-                <option value="2">2 letters</option>
-                <option value="3">3 letters</option>
-                <option value="4">4 letters</option>
-            `;
-        }
         
-        // Restore previous value if still valid
+    } else {
+        // Show 2-4 letters only
+        prefixLengthSelect.innerHTML = `
+            <option value="2">2 letters</option>
+            <option value="3">3 letters</option>
+            <option value="4">4 letters</option>
+        `;
+        
+        // Restore previous value if still valid (only for max-words mode)
         if (Array.from(prefixLengthSelect.options).some(opt => opt.value === currentValue)) {
             prefixLengthSelect.value = currentValue;
         } else {
             prefixLengthSelect.value = '2'; // Default to 2 if previous value not available
         }
     }
+}
     
     // Add event listeners to mode radios
     modeRadios.forEach(radio => {
@@ -898,7 +898,7 @@ filteredWords.forEach(word => {
                         allWordsMatch = false;
                         break;
                     }
-                } else if (comparisonOp === '=') {
+                } else if (comparisonOp === '>=') {
                     if (wordLength < compareLength) {
                         allWordsMatch = false;
                         break;
