@@ -32,19 +32,6 @@
         </div>
 
         <div class="control-panel">
-            <!-- Search filters (shared) -->
-            <div class="search-filters">
-                <div class="filter-group">
-                    <label for="prefix-input">Starts with:</label>
-                    <input type="text" id="prefix-input" placeholder="e.g., 'ly'" class="filter-input">
-                </div>
-                
-                <div class="filter-group">
-                    <label for="suffix-input">Ends with:</label>
-                    <input type="text" id="suffix-input" placeholder="e.g., 'ines'" class="filter-input">
-                </div>
-            </div>
-
             <!-- Mode Toggle -->
             <div class="mode-toggle-container">
                 <div class="mode-toggle">
@@ -68,6 +55,19 @@
                     </label>
                 </div>
 
+                <!-- Search filters for normal mode -->
+                <div class="search-filters">
+                    <div class="filter-group">
+                        <label for="prefix-input">Starts with:</label>
+                        <input type="text" id="prefix-input" placeholder="e.g., 'ly'" class="filter-input">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="suffix-input">Ends with:</label>
+                        <input type="text" id="suffix-input" placeholder="e.g., 'ines'" class="filter-input">
+                    </div>
+                </div>
+
                 <div class="action-buttons">
                     <button id="search-btn" class="btn btn-search">Search</button>
                     <button id="clear-btn" class="btn btn-clear">Clear All</button>
@@ -76,6 +76,20 @@
 
             <!-- RARE FINDER SECTION (hidden by default) -->
             <div id="rare-finder-section" style="display: none;">
+                <!-- Rare Finder Sort Options -->
+                <div class="rare-sort-options">
+                    <span class="sort-label">Sort results by:</span>
+                    <label class="radio-label">
+                        <input type="radio" name="rare-sort" value="count-asc" checked> Count (fewest first)
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="rare-sort" value="count-desc"> Count (most first)
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="rare-sort" value="alpha"> Alphabetical
+                    </label>
+                </div>
+                
                 <!-- Rare Finder Filters -->
                 <div class="rare-filters">
                     <div class="filter-group">
@@ -102,20 +116,6 @@
                             <option value="8">8 words</option>
                         </select>
                     </div>
-                </div>
-                
-                <!-- Rare Finder Sort Options -->
-                <div class="rare-sort-options">
-                    <span class="sort-label">Sort results by:</span>
-                    <label class="radio-label">
-                        <input type="radio" name="rare-sort" value="count-asc" checked> Count (fewest first)
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="rare-sort" value="count-desc"> Count (most first)
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="rare-sort" value="alpha"> Alphabetical
-                    </label>
                 </div>
                 
                 <!-- Rare Finder Action Buttons -->
