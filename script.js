@@ -605,13 +605,22 @@ function createFilterModeUI() {
                 <input type="radio" name="filter-mode" value="max-words" checked style="accent-color: var(--text-primary); width: 16px; height: 16px; margin: 0;"> 
                 <span style="font-weight: 500; color: var(--text-primary);">Max Words: <span id="mode-max-words-indicator" style="background: var(--text-secondary); color: var(--bg-primary); padding: 2px 8px; border-radius: 20px; margin-left: 4px;">2</span></span>
             </label>
-            <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); transition: all 0.2s ease;"
-                   onmouseover="this.style.background='var(--bg-hover)'" 
-                   onmouseout="this.style.background='var(--bg-tertiary)'">
-                <input type="radio" name="filter-mode" value="longer-than" style="accent-color: var(--text-primary); width: 16px; height: 16px; margin: 0;"> 
-                <span style="font-weight: 500; color: var(--text-primary);">Longer Than 6 Letters</span>
-            </label>
-        </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+    <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); transition: all 0.2s ease;"
+           onmouseover="this.style.background='var(--bg-hover)'" 
+           onmouseout="this.style.background='var(--bg-tertiary)'">
+        <input type="radio" name="filter-mode" value="length-compare" style="accent-color: var(--text-primary); width: 16px; height: 16px; margin: 0;"> 
+        <span style="font-weight: 500; color: var(--text-primary);">Compare Word Length</span>
+    </label>
+    
+    <select id="length-comparison" style="padding: 6px; border-radius: 6px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+        <option value="<=">≤ Less than or equal</option>
+        <option value="=">= Equal to</option>
+        <option value=">=">≥ Greater than or equal</option>
+    </select>
+    
+    <input type="number" id="compare-length" value="6" min="1" max="20" style="width: 60px; padding: 6px; border-radius: 6px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+</div>
     `;
     
 // Find the rare-filters div
@@ -786,40 +795,50 @@ filteredWords.forEach(word => {
                         validPrefixes.push({ prefix, count });
                     }
                 });
-} else {
-    // OPTIMIZED: Longer Than 6 Letters mode - ALL words must be >6 letters
-// First, group words by their prefix
-const wordsByPrefix = new Map();
-
-// Filter words first (apply blacklist)
-const filteredWords = rareWords.filter(word => {
-    const lowerWord = word.toLowerCase();
-    return !blacklistArray.some(prefix => lowerWord.startsWith(prefix));
-});
-
-// Group all filtered words by their prefix, applying the prefix filter
-for (let word of filteredWords) {
-    if (word.length >= prefixLength) {
-        const prefix = word.slice(0, prefixLength).toLowerCase();
-        
-        // Apply the prefix filter here
-        if (prefixFilter && !prefix.startsWith(prefixFilter)) continue;
-        
-        if (!wordsByPrefix.has(prefix)) {
-            wordsByPrefix.set(prefix, []);
-        }
-        wordsByPrefix.get(prefix).push(word);
-    }
-}
+} else if (filterMode === 'length-compare') {
+    // Get comparison settings
+    const comparisonOp = document.getElementById('length-comparison').value;
+    const compareLength = parseInt(document.getElementById('compare-length').value);
     
-    // Now check each prefix that has at least 2 words
+    // Group words by their prefix
+    const wordsByPrefix = new Map();
+    
+    // Filter words first (apply blacklist)
+    const filteredWords = rareWords.filter(word => {
+        const lowerWord = word.toLowerCase();
+        return !blacklistArray.some(prefix => lowerWord.startsWith(prefix));
+    });
+    
+    // Group all filtered words by their prefix, applying the prefix filter
+    for (let word of filteredWords) {
+        if (word.length >= prefixLength) {
+            const prefix = word.slice(0, prefixLength).toLowerCase();
+            
+            // Apply the prefix filter here
+            if (prefixFilter && !prefix.startsWith(prefixFilter)) continue;
+            
+            if (!wordsByPrefix.has(prefix)) {
+                wordsByPrefix.set(prefix, []);
+            }
+            wordsByPrefix.get(prefix).push(word);
+        }
+    }
+    
+    // Now check each prefix that has at least 4 words
     wordsByPrefix.forEach((words, prefix) => {
         if (words.length >= 4) {
-            // Check if ALL words for this prefix are longer than 6 letters
-            const allWordsLong = words.every(word => word.length > 6);
+            // Check if ALL words meet the length comparison
+            let allWordsMatch;
             
-            if (allWordsLong) {
-                // Count is the number of words for this prefix
+            if (comparisonOp === '<=') {
+                allWordsMatch = words.every(word => word.length <= compareLength);
+            } else if (comparisonOp === '=') {
+                allWordsMatch = words.every(word => word.length === compareLength);
+            } else if (comparisonOp === '>=') {
+                allWordsMatch = words.every(word => word.length >= compareLength);
+            }
+            
+            if (allWordsMatch) {
                 validPrefixes.push({ prefix, count: words.length });
             }
         }
@@ -861,9 +880,14 @@ for (let word of filteredWords) {
                 let message = '';
                 if (filterMode === 'max-words') {
                     message = `No ${prefixLength}-letter prefixes with 4-${maxWords} words found`;
-                } else {
-                    message = `No ${prefixLength}-letter prefixes with words longer than 6 letters found`;
-                }
+                } else if (filterMode === 'max-words') {
+    message = `No ${prefixLength}-letter prefixes with 4-${maxWords} words found`;
+} else {
+    const comparisonOp = document.getElementById('length-comparison').value;
+    const compareLength = document.getElementById('compare-length').value;
+    const opText = comparisonOp === '<=' ? '≤' : (comparisonOp === '=' ? '=' : '≥');
+    message = `No ${prefixLength}-letter prefixes where all words have length ${opText} ${compareLength} found`;
+}
                 document.getElementById('results-box').innerHTML = `<div class="status-message">${message}</div>`;
             }
         }, 10);
@@ -882,6 +906,12 @@ for (let word of filteredWords) {
             document.getElementById('rare-max-words').disabled = false;
             document.getElementById('rare-max-words').style.opacity = '1';
         }
+
+            // Reset length comparison fields
+    const lengthComparison = document.getElementById('length-comparison');
+    if (lengthComparison) lengthComparison.value = '<=';
+    const compareLength = document.getElementById('compare-length');
+    if (compareLength) compareLength.value = '6';
         
         document.querySelectorAll('input[name="rare-sort"]')[0].checked = true;
         document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Filters cleared</p>';
