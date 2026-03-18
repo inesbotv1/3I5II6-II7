@@ -746,6 +746,13 @@ setTimeout(function() {
                 <option value="3">3 letters</option>
                 <option value="4">4 letters</option>
             `;
+        // Set default to 1 letter when switching to compare mode
+        prefixLengthSelect.value = '1';
+        
+        // Also set compare length default to 1
+        const compareLength = document.getElementById('compare-length');
+        if (compareLength) compareLength.value = '1';
+            
         } else {
             // Show 2-4 letters only
             prefixLengthSelect.innerHTML = `
