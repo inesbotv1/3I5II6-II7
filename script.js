@@ -719,11 +719,14 @@ function createFilterModeUI() {
 const prefixCounts = new Map();
 const wordSet = new Set(rareWords.map(w => w.toLowerCase()));
 
-// First filter out blacklisted words
+// Convert blacklistedPrefixes Set to array for performance
+const blacklistArray = [...blacklistedPrefixes];
+
+// Filter words that start with any blacklisted prefix
 const filteredWords = rareWords.filter(word => {
     const lowerWord = word.toLowerCase();
     // Check if word starts with any blacklisted prefix
-    return ![...blacklistedPrefixes].some(prefix => lowerWord.startsWith(prefix));
+    return !blacklistArray.some(prefix => lowerWord.startsWith(prefix));
 });
 
 filteredWords.forEach(word => {
@@ -749,23 +752,29 @@ filteredWords.forEach(word => {
                 });
 } else {
     // OPTIMIZED: Longer Than 6 Letters mode - ALL words must be >6 letters
-    // First, group words by their prefix
-    const wordsByPrefix = new Map();
-    
-    // Group all words by their prefix, applying the prefix filter
-    for (let word of rareWords) {
-        if (word.length >= prefixLength) {
-            const prefix = word.slice(0, prefixLength).toLowerCase();
-            
-            // Apply the prefix filter here
-            if (prefixFilter && !prefix.startsWith(prefixFilter)) continue;
-            
-            if (!wordsByPrefix.has(prefix)) {
-                wordsByPrefix.set(prefix, []);
-            }
-            wordsByPrefix.get(prefix).push(word);
+// First, group words by their prefix
+const wordsByPrefix = new Map();
+
+// Filter words first (apply blacklist)
+const filteredWords = rareWords.filter(word => {
+    const lowerWord = word.toLowerCase();
+    return !blacklistArray.some(prefix => lowerWord.startsWith(prefix));
+});
+
+// Group all filtered words by their prefix, applying the prefix filter
+for (let word of filteredWords) {
+    if (word.length >= prefixLength) {
+        const prefix = word.slice(0, prefixLength).toLowerCase();
+        
+        // Apply the prefix filter here
+        if (prefixFilter && !prefix.startsWith(prefixFilter)) continue;
+        
+        if (!wordsByPrefix.has(prefix)) {
+            wordsByPrefix.set(prefix, []);
         }
+        wordsByPrefix.get(prefix).push(word);
     }
+}
     
     // Now check each prefix that has at least 2 words
     wordsByPrefix.forEach((words, prefix) => {
