@@ -828,14 +828,27 @@ filteredWords.forEach(word => {
     wordsByPrefix.forEach((words, prefix) => {
         if (words.length >= 4) {
             // Check if ALL words meet the length comparison
-            let allWordsMatch;
+            let allWordsMatch = true;
             
-            if (comparisonOp === '<=') {
-                allWordsMatch = words.every(word => word.length <= compareLength);
-            } else if (comparisonOp === '=') {
-                allWordsMatch = words.every(word => word.length === compareLength);
-            } else if (comparisonOp === '>=') {
-                allWordsMatch = words.every(word => word.length >= compareLength);
+            for (let word of words) {
+                const wordLength = word.length;
+                
+                if (comparisonOp === '<=') {
+                    if (wordLength > compareLength) {
+                        allWordsMatch = false;
+                        break;
+                    }
+                } else if (comparisonOp === '=') {
+                    if (wordLength !== compareLength) {
+                        allWordsMatch = false;
+                        break;
+                    }
+                } else if (comparisonOp === '>=') {
+                    if (wordLength < compareLength) {
+                        allWordsMatch = false;
+                        break;
+                    }
+                }
             }
             
             if (allWordsMatch) {
