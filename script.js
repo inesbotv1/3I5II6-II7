@@ -615,7 +615,6 @@ function createFilterModeUI() {
     
     <select id="length-comparison" style="padding: 6px; border-radius: 6px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
         <option value="<=">≤ Less than or equal</option>
-        <option value="=">= Equal to</option>
         <option value=">=">≥ Greater than or equal</option>
     </select>
     
@@ -835,11 +834,6 @@ filteredWords.forEach(word => {
                 
                 if (comparisonOp === '<=') {
                     if (wordLength > compareLength) {
-                        allWordsMatch = false;
-                        break;
-                    }
-                } else if (comparisonOp === '=') {
-                    if (wordLength !== compareLength) {
                         allWordsMatch = false;
                         break;
                     }
