@@ -496,6 +496,36 @@ rareBtn.addEventListener('click', () => {
         document.getElementById('results-box').innerHTML = rareState.results;
         document.getElementById('result-count').textContent = rareState.resultCount;
 
+        // CRITICAL FIX: Reinitialize the Load More button if needed
+if (searchState && searchState.currentIndex < searchState.totalCount) {
+    // Remove any existing load more button first
+    const oldContainer = document.getElementById('load-more-container');
+    if (oldContainer) oldContainer.remove();
+    
+    // Recreate the load more button
+    const container = document.createElement('div');
+    container.id = 'load-more-container';
+    container.style.cssText = 'display: flex; justify-content: center; margin: 20px 0; flex-direction: column; align-items: center; gap: 10px;';
+    
+    const counter = document.createElement('div');
+    counter.style.cssText = 'color: var(--text-secondary); font-size: 0.9em;';
+    counter.textContent = `Showing ${searchState.validResults.length} verified prefixes of ${searchState.totalCount} total matches`;
+    
+    const button = document.createElement('button');
+    button.className = 'btn btn-search';
+    button.style.cssText = 'width: auto; padding: 8px 30px;';
+    button.textContent = 'Load More ▼';
+    button.onclick = function() {
+        this.disabled = true;
+        this.textContent = 'Loading...';
+        loadVerifiedResults(false);
+    };
+    
+    container.appendChild(counter);
+    container.appendChild(button);
+    document.getElementById('results-box').appendChild(container);
+}
+
         // CRITICAL FIX: Restore the search state for lazy loading
         if (rareState.searchState) {
             searchState = rareState.searchState;
