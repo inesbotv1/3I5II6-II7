@@ -541,7 +541,7 @@ function createFilterModeUI() {
     // Create filter mode controls with better styling
     const filterControls = document.createElement('div');
     filterControls.id = 'filter-mode-controls';
-    filterControls.style.margin = '20px 0';
+    filterControls.style.marginTop = '20px';
     filterControls.style.padding = '15px';
     filterControls.style.background = 'var(--bg-secondary)';
     filterControls.style.borderRadius = '8px';
