@@ -599,55 +599,45 @@ function createFilterModeUI() {
     filterControls.innerHTML = `
         <div style="margin-bottom: 12px; font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">Filter Mode:</div>
         <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-            <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); transition: all 0.2s ease;" 
-                   onmouseover="this.style.background='var(--bg-hover)'" 
-                   onmouseout="this.style.background='var(--bg-tertiary)'">
-                <input type="radio" name="filter-mode" value="max-words" checked style="accent-color: var(--text-primary); width: 16px; height: 16px; margin: 0;"> 
-                <span style="font-weight: 500; color: var(--text-primary);">Max Words: <span id="mode-max-words-indicator" style="background: var(--text-secondary); color: var(--bg-primary); padding: 2px 8px; border-radius: 20px; margin-left: 4px;">2</span></span>
-            </label>
-            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-    <!-- Max Words button -->
-    <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 20px; background: var(--bg-tertiary); border-radius: 40px; border: 2px solid var(--border-primary); transition: all 0.2s ease; box-shadow: 0 2px 4px var(--shadow-color); font-size: 0.95rem;"
-           onmouseover="this.style.background='var(--bg-hover)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px var(--shadow-color)';" 
-           onmouseout="this.style.background='var(--bg-tertiary)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px var(--shadow-color)';">
-        <input type="radio" name="filter-mode" value="max-words" checked style="accent-color: var(--text-primary); width: 18px; height: 18px; margin: 0; cursor: pointer;"> 
-        <span style="font-weight: 600; color: var(--text-primary);">Max Words: <span id="mode-max-words-indicator" style="background: var(--text-secondary); color: var(--bg-primary); padding: 4px 12px; border-radius: 30px; margin-left: 8px; font-weight: 600;">2</span></span>
+    <!-- Original Max Words button (keep exactly as is) -->
+    <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); transition: all 0.2s ease;" 
+           onmouseover="this.style.background='var(--bg-hover)'" 
+           onmouseout="this.style.background='var(--bg-tertiary)'">
+        <input type="radio" name="filter-mode" value="max-words" checked style="accent-color: var(--text-primary); width: 16px; height: 16px; margin: 0;"> 
+        <span style="font-weight: 500; color: var(--text-primary);">Max Words: <span id="mode-max-words-indicator" style="background: var(--text-secondary); color: var(--bg-primary); padding: 2px 8px; border-radius: 20px; margin-left: 4px;">2</span></span>
     </label>
     
-    <!-- Compare Length button and fused controls -->
-    <div style="display: flex; align-items: center; gap: 15px;">
-        <!-- Compare Length button -->
-        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 20px; background: var(--bg-tertiary); border-radius: 40px; border: 2px solid var(--border-primary); transition: all 0.2s ease; box-shadow: 0 2px 4px var(--shadow-color); font-size: 0.95rem;"
-               onmouseover="this.style.background='var(--bg-hover)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px var(--shadow-color)';" 
-               onmouseout="this.style.background='var(--bg-tertiary)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px var(--shadow-color)';">
-            <input type="radio" name="filter-mode" value="length-compare" style="accent-color: var(--text-primary); width: 18px; height: 18px; margin: 0; cursor: pointer;"> 
-            <span style="font-weight: 600; color: var(--text-primary);">Compare Length</span>
+    <!-- Compare Length button (styled exactly like Max Words) + fused controls -->
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <!-- Compare Length button - exact same style as Max Words -->
+        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); transition: all 0.2s ease;"
+               onmouseover="this.style.background='var(--bg-hover)'" 
+               onmouseout="this.style.background='var(--bg-tertiary)'">
+            <input type="radio" name="filter-mode" value="length-compare" style="accent-color: var(--text-primary); width: 16px; height: 16px; margin: 0;"> 
+            <span style="font-weight: 500; color: var(--text-primary);">Compare Length</span>
         </label>
         
-        <!-- Fused controls container -->
-        <div style="display: flex; align-items: center; background: var(--bg-tertiary); border-radius: 40px; border: 2px solid var(--border-primary); padding: 4px; box-shadow: 0 2px 4px var(--shadow-color);">
+        <!-- Fused controls container (styled border) -->
+        <div style="display: flex; align-items: center; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); padding: 4px 4px 4px 8px;">
             <!-- Comparison symbol dropdown -->
-            <select id="length-comparison" style="padding: 8px 16px; border-radius: 40px; background: transparent; color: var(--text-primary); border: none; font-weight: 600; font-size: 1rem; cursor: pointer; outline: none; appearance: none; text-align: center; width: 60px;"
-                    onmouseover="this.style.background='var(--bg-hover)'; this.style.borderRadius='40px';" 
+            <select id="length-comparison" style="padding: 4px 8px; border-radius: 20px; background: transparent; color: var(--text-primary); border: none; font-weight: 500; cursor: pointer; outline: none; appearance: none; text-align: center; width: 50px;"
+                    onmouseover="this.style.background='var(--bg-hover)';" 
                     onmouseout="this.style.background='transparent';">
-                <option value="<=" style="background: var(--bg-tertiary); color: var(--text-primary); padding: 8px;">≤</option>
-                <option value="=" style="background: var(--bg-tertiary); color: var(--text-primary); padding: 8px;">=</option>
-                <option value=">=" style="background: var(--bg-tertiary); color: var(--text-primary); padding: 8px;">≥</option>
+                <option value="<=" style="background: var(--bg-tertiary); color: var(--text-primary);">≤</option>
+                <option value="=" style="background: var(--bg-tertiary); color: var(--text-primary);">=</option>
+                <option value=">=" style="background: var(--bg-tertiary); color: var(--text-primary);">≥</option>
             </select>
             
             <!-- Visual separator -->
-            <div style="width: 2px; height: 30px; background: var(--border-primary); margin: 0 4px;"></div>
+            <div style="width: 1px; height: 20px; background: var(--border-color); margin: 0 4px;"></div>
             
-            <!-- Number input with letters label -->
-            <div style="display: flex; align-items: center; padding: 0 8px 0 4px;">
-                <input type="number" id="compare-length" value="6" min="1" max="20" 
-                       style="width: 50px; padding: 8px 4px; border-radius: 30px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-primary); text-align: center; font-weight: 600; font-size: 1rem; outline: none; transition: all 0.2s ease; margin-right: 4px;"
-                       onmouseover="this.style.background='var(--bg-hover)'" 
-                       onmouseout="this.style.background='var(--bg-secondary)'"
-                       onfocus="this.style.borderColor='var(--text-primary)'; this.style.boxShadow='0 0 0 2px var(--shadow-color)';"
-                       onblur="this.style.borderColor='var(--border-primary)'; this.style.boxShadow='none';">
-                <span style="color: var(--text-secondary); font-weight: 500; font-size: 0.95rem;">letters</span>
-            </div>
+            <!-- Number input -->
+            <input type="number" id="compare-length" value="6" min="1" max="20" 
+                   style="width: 45px; padding: 4px; border-radius: 20px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); text-align: center; font-weight: 500; outline: none; margin: 0 2px;"
+                   onmouseover="this.style.background='var(--bg-hover)'" 
+                   onmouseout="this.style.background='var(--bg-secondary)'"
+                   onfocus="this.style.borderColor='var(--text-primary)';"
+                   onblur="this.style.borderColor='var(--border-color)';">
         </div>
     </div>
 </div>
