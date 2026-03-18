@@ -1042,11 +1042,14 @@ function loadVerifiedResults(isFirstLoad = false) {
         searchState.validResults = [...searchState.validResults, ...results];
         
         let modeDescription = '';
-        if (filterMode === 'max-words') {
-            modeDescription = `4-${maxWords} words`;
-        } else {
-            modeDescription = `words longer than 6 letters`;
-        }
+if (filterMode === 'max-words') {
+    modeDescription = `4-${maxWords} words`;
+} else if (filterMode === 'length-compare') {
+    const comparisonOp = document.getElementById('length-comparison').value;
+    const compareLength = document.getElementById('compare-length').value;
+    const opText = comparisonOp === '<=' ? '≤' : (comparisonOp === '=' ? '=' : '≥');
+    modeDescription = `all words have length ${opText} ${compareLength}`;
+}
         
         // If this is the first batch, show the stats
         if (isFirstLoad || searchState.validResults.length === results.length) {
