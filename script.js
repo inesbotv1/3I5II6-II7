@@ -430,18 +430,19 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
     };
     
     normalBtn.addEventListener('click', () => {
-        // Only switch if we're not already in normal mode
-        if (!normalBtn.classList.contains('mode-active')) {
-            // Save rare state before switching (including results)
-            rareState = {
-                prefix: document.getElementById('rare-prefix').value,
-                prefixLength: document.getElementById('rare-prefix-length').value,
-                maxWords: document.getElementById('rare-max-words').value,
-                filterMode: document.querySelector('input[name="filter-mode"]:checked')?.value || 'max-words',
-                sort: document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc',
-                results: document.getElementById('results-box').innerHTML,
-                resultCount: document.getElementById('result-count').textContent
-            };
+    // Only switch if we're not already in normal mode
+    if (!normalBtn.classList.contains('mode-active')) {
+        // Save rare state before switching (including results AND searchState)
+        rareState = {
+            prefix: document.getElementById('rare-prefix').value,
+            prefixLength: document.getElementById('rare-prefix-length').value,
+            maxWords: document.getElementById('rare-max-words').value,
+            filterMode: document.querySelector('input[name="filter-mode"]:checked')?.value || 'max-words',
+            sort: document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc',
+            results: document.getElementById('results-box').innerHTML,
+            resultCount: document.getElementById('result-count').textContent,
+            searchState: searchState // SAVE the lazy loading state
+        };
             
             // Restore normal state
             document.getElementById('prefix-input').value = normalState.prefix;
