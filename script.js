@@ -715,17 +715,24 @@ function createFilterModeUI() {
         
         // Use setTimeout to prevent UI freeze
         setTimeout(() => {
-            // Count prefixes (lightweight operation)
-            const prefixCounts = new Map();
-            const wordSet = new Set(rareWords.map(w => w.toLowerCase()));
-            
-            rareWords.forEach(word => {
-                if (word.length >= prefixLength) {
-                    const prefix = word.slice(0, prefixLength).toLowerCase();
-                    if (prefixFilter && !prefix.startsWith(prefixFilter)) return;
-                    prefixCounts.set(prefix, (prefixCounts.get(prefix) || 0) + 1);
-                }
-            });
+            // Count prefixes (lightweight operation) - WITH BLACKLIST FILTERING
+const prefixCounts = new Map();
+const wordSet = new Set(rareWords.map(w => w.toLowerCase()));
+
+// First filter out blacklisted words
+const filteredWords = rareWords.filter(word => {
+    const lowerWord = word.toLowerCase();
+    // Check if word starts with any blacklisted prefix
+    return ![...blacklistedPrefixes].some(prefix => lowerWord.startsWith(prefix));
+});
+
+filteredWords.forEach(word => {
+    if (word.length >= prefixLength) {
+        const prefix = word.slice(0, prefixLength).toLowerCase();
+        if (prefixFilter && !prefix.startsWith(prefixFilter)) return;
+        prefixCounts.set(prefix, (prefixCounts.get(prefix) || 0) + 1);
+    }
+});
             
             // Get sort option
             const sortOption = document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc';
