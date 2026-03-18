@@ -967,12 +967,12 @@ filteredWords.forEach(word => {
             } else {
                 let message = '';
                 if (filterMode === 'max-words') {
-                    message = `No ${prefixLength}-letter prefixes with 4-${maxWords} words found`;
+                    message = `No ${prefixLength}-letter prefixes with 4-${maxWords} character long`;
 } else {
     const comparisonOp = document.getElementById('length-comparison').value;
     const compareLength = document.getElementById('compare-length').value;
     const opText = comparisonOp === '<=' ? '≤' : (comparisonOp === '=' ? '=' : '≥');
-    message = `No ${prefixLength}-letter prefixes where all words have length ${opText} ${compareLength} found`;
+    message = `No ${prefixLength}-letter prefixes found with all words ${opText} ${compareLength} found`;
 }
                 document.getElementById('results-box').innerHTML = `<div class="status-message">${message}</div>`;
             }
