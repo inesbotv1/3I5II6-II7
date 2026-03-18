@@ -894,7 +894,7 @@ filteredWords.forEach(word => {
                         break;
                     }
                 } else if (comparisonOp === '=') {
-                    if (wordLength < compareLength) {
+                    if (wordLength !== compareLength) {
                         allWordsMatch = false;
                         break;
                     }
@@ -948,8 +948,6 @@ filteredWords.forEach(word => {
                 let message = '';
                 if (filterMode === 'max-words') {
                     message = `No ${prefixLength}-letter prefixes with 4-${maxWords} words found`;
-                } else if (filterMode === 'max-words') {
-    message = `No ${prefixLength}-letter prefixes with 4-${maxWords} words found`;
 } else {
     const comparisonOp = document.getElementById('length-comparison').value;
     const compareLength = document.getElementById('compare-length').value;
