@@ -565,18 +565,12 @@ function createFilterModeUI() {
     `;
     
 // Find the rare-filters div
-const rareFilters = rareSection.querySelector('.rare-filters');
-if (rareFilters) {
-    // Find the prefix starts with filter group (the last one in rare-filters)
-    const filterGroups = rareFilters.querySelectorAll('.filter-group');
-    if (filterGroups.length >= 3) {
-        // Insert filterControls before the third filter group (prefix starts with)
-        rareFilters.insertBefore(filterControls, filterGroups[2]);
+    const existingFilters = rareSection.querySelector('.search-filters');
+    if (existingFilters) {
+        existingFilters.parentNode.insertBefore(filterControls, existingFilters.nextSibling);
     } else {
-        // Fallback: insert at the beginning of rare-filters
-        rareFilters.insertBefore(filterControls, rareFilters.firstChild);
+        rareSection.insertBefore(filterControls, document.getElementById('rare-search-btn').parentNode);
     }
-}
     
     // Add event listeners to radio buttons
     const modeRadios = document.querySelectorAll('input[name="filter-mode"]');
