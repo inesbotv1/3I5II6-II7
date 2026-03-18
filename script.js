@@ -463,46 +463,51 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
         }
     });
     
-    rareBtn.addEventListener('click', () => {
-        // Only switch if we're not already in rare mode
-        if (!rareBtn.classList.contains('mode-active')) {
-            // Save normal state before switching (including results)
-            normalState = {
-                prefix: document.getElementById('prefix-input').value,
-                suffix: document.getElementById('suffix-input').value,
-                sort: document.querySelector('input[name="sort"]:checked')?.value || 'none',
-                results: document.getElementById('results-box').innerHTML,
-                resultCount: document.getElementById('result-count').textContent
-            };
-            
-            // Restore rare state
-            document.getElementById('rare-prefix').value = rareState.prefix;
-            document.getElementById('rare-prefix-length').value = rareState.prefixLength;
-            document.getElementById('rare-max-words').value = rareState.maxWords;
-            
-            // Restore filter mode radio
-            const filterRadio = document.querySelector(`input[name="filter-mode"][value="${rareState.filterMode}"]`);
-            if (filterRadio) {
-                filterRadio.checked = true;
-                filterRadio.dispatchEvent(new Event('change'));
-            }
-            
-            // Restore sort radio
-            const sortRadio = document.querySelector(`input[name="rare-sort"][value="${rareState.sort}"]`);
-            if (sortRadio) sortRadio.checked = true;
-            
-            // Restore rare results
-            document.getElementById('results-box').innerHTML = rareState.results;
-            document.getElementById('result-count').textContent = rareState.resultCount;
-
-            normalBtn.classList.remove('mode-active');
-            rareBtn.classList.add('mode-active');
-            normalSection.style.display = 'none';
-            rareSection.style.display = 'block';
-            if (searchFilters) searchFilters.style.display = 'none';
-            loadRareWords();
+rareBtn.addEventListener('click', () => {
+    // Only switch if we're not already in rare mode
+    if (!rareBtn.classList.contains('mode-active')) {
+        // Save normal state before switching (including results)
+        normalState = {
+            prefix: document.getElementById('prefix-input').value,
+            suffix: document.getElementById('suffix-input').value,
+            sort: document.querySelector('input[name="sort"]:checked')?.value || 'none',
+            results: document.getElementById('results-box').innerHTML,
+            resultCount: document.getElementById('result-count').textContent
+        };
+        
+        // Restore rare state
+        document.getElementById('rare-prefix').value = rareState.prefix;
+        document.getElementById('rare-prefix-length').value = rareState.prefixLength;
+        document.getElementById('rare-max-words').value = rareState.maxWords;
+        
+        // Restore filter mode radio
+        const filterRadio = document.querySelector(`input[name="filter-mode"][value="${rareState.filterMode}"]`);
+        if (filterRadio) {
+            filterRadio.checked = true;
+            filterRadio.dispatchEvent(new Event('change'));
         }
-    });
+        
+        // Restore sort radio
+        const sortRadio = document.querySelector(`input[name="rare-sort"][value="${rareState.sort}"]`);
+        if (sortRadio) sortRadio.checked = true;
+        
+        // Restore rare results
+        document.getElementById('results-box').innerHTML = rareState.results;
+        document.getElementById('result-count').textContent = rareState.resultCount;
+
+        // CRITICAL FIX: Restore the search state for lazy loading
+        if (rareState.searchState) {
+            searchState = rareState.searchState;
+        }
+
+        normalBtn.classList.remove('mode-active');
+        rareBtn.classList.add('mode-active');
+        normalSection.style.display = 'none';
+        rareSection.style.display = 'block';
+        if (searchFilters) searchFilters.style.display = 'none';
+        loadRareWords();
+    }
+});
 }
     
 // load words - UPDATED WITH BLACKLIST
