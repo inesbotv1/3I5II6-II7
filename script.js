@@ -426,7 +426,6 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
         sort: 'count-asc',
         results: '<p class="placeholder-text">Click Search to find rare prefixes</p>',
         resultCount: '0'
-        searchState: null  // ADD THIS LINE
     };
     
     normalBtn.addEventListener('click', () => {
@@ -441,7 +440,6 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
                 sort: document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc',
                 results: document.getElementById('results-box').innerHTML,
                 resultCount: document.getElementById('result-count').textContent
-                searchState: searchState
             };
             
             // Restore normal state
@@ -496,16 +494,6 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
             document.getElementById('results-box').innerHTML = rareState.results;
             document.getElementById('result-count').textContent = rareState.resultCount;
 
-            // Restore the search state for pagination - ADD THIS HERE
-if (rareState.searchState) {
-    searchState = rareState.searchState;
-    // Re-attach the "Load More" button if there are more results to load
-    if (searchState.currentIndex < searchState.totalCount) {
-        // Remove any existing load more button first
-        document.getElementById('load-more-container')?.remove();
-        addLoadMoreButton();
-    }
-}
             normalBtn.classList.remove('mode-active');
             rareBtn.classList.add('mode-active');
             normalSection.style.display = 'none';
