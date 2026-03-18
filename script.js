@@ -399,6 +399,7 @@ function makeWordsClickable() {
     let rareWords = [];
     let isLoading = false;
     let searchState = null; // Store search state for lazy loading
+    let blacklistedPrefixes = new Set(); // <---- ADD THIS LINE
     
     // get elements
     const normalBtn = document.getElementById('mode-normal');
@@ -504,31 +505,44 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
     });
 }
     
-    // load words
-    async function loadRareWords() {
-        if (isLoading || rareWords.length > 0) return;
+// load words - UPDATED WITH BLACKLIST
+async function loadRareWords() {
+    if (isLoading || rareWords.length > 0) return;
+    
+    isLoading = true;
+    const resultsBox = document.getElementById('results-box');
+    resultsBox.innerHTML = '<div class="loading-message">⏳ Loading words and blacklist...</div>';
+    
+    try {
+        // Load both files
+        const [wordsResponse, blacklistResponse] = await Promise.all([
+            fetch('https://raw.githubusercontent.com/inesbotv1/askari/refs/heads/main/lastletter.txt?t=' + Date.now()),
+            fetch('https://raw.githubusercontent.com/inesbotv1/inesbot/refs/heads/main/blacklist.txt?t=' + Date.now())
+        ]);
         
-        isLoading = true;
-        const resultsBox = document.getElementById('results-box');
-        resultsBox.innerHTML = '<div class="loading-message">⏳ Loading words for Rare Finder...</div>';
+        const wordsText = await wordsResponse.text();
+        const blacklistText = await blacklistResponse.text();
         
-        try {
-            const response = await fetch('https://raw.githubusercontent.com/inesbotv1/askari/refs/heads/main/lastletter.txt?t=' + Date.now());
-            const text = await response.text();
-            
-            rareWords = [...new Set(text.split(/\r?\n/)
-                .map(w => w.trim())
-                .filter(w => w.length > 0))];
-            
-            resultsBox.innerHTML = `<div class="success-message">Loaded ${rareWords.length} words! Ready to search.</div>`;
-            document.getElementById('result-count').textContent = '0';
-            
-        } catch (error) {
-            resultsBox.innerHTML = '<div class="error-message">Failed to load words</div>';
-        } finally {
-            isLoading = false;
-        }
+        rareWords = [...new Set(wordsText.split(/\r?\n/)
+            .map(w => w.trim())
+            .filter(w => w.length > 0))];
+        
+        // Load blacklisted prefixes
+        blacklistedPrefixes = new Set(
+            blacklistText.split(/\r?\n/)
+                .map(line => line.trim().toLowerCase())
+                .filter(line => line.length > 0)
+        );
+        
+        resultsBox.innerHTML = `<div class="success-message">Loaded ${rareWords.length} words (${blacklistedPrefixes.size} blacklisted prefixes)</div>`;
+        document.getElementById('result-count').textContent = '0';
+        
+    } catch (error) {
+        resultsBox.innerHTML = '<div class="error-message">Failed to load data</div>';
+    } finally {
+        isLoading = false;
     }
+}
     
 // NEW: Create the filter mode UI - IMPROVED DESIGN
 function createFilterModeUI() {
