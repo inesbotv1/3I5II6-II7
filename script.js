@@ -426,6 +426,7 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
         sort: 'count-asc',
         results: '<p class="placeholder-text">Click Search to find rare prefixes</p>',
         resultCount: '0'
+        searchState: null  // Add this to store pagination state
     };
     
     normalBtn.addEventListener('click', () => {
@@ -440,6 +441,7 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
                 sort: document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc',
                 results: document.getElementById('results-box').innerHTML,
                 resultCount: document.getElementById('result-count').textContent
+                searchState: searchState  // Save the current search state
             };
             
             // Restore normal state
