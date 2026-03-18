@@ -618,28 +618,26 @@ function createFilterModeUI() {
         </label>
         
         <!-- Fused controls container (styled border) -->
-        <div style="display: flex; align-items: center; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); padding: 4px 4px 4px 8px;">
-            <!-- Comparison symbol dropdown -->
-            <select id="length-comparison" style="padding: 4px 8px; border-radius: 20px; background: transparent; color: var(--text-primary); border: none; font-weight: 500; cursor: pointer; outline: none; appearance: none; text-align: center; width: 50px;"
-                    onmouseover="this.style.background='var(--bg-hover)';" 
-                    onmouseout="this.style.background='transparent';">
-                <option value="<=" style="background: var(--bg-tertiary); color: var(--text-primary);">≤</option>
-                <option value="=" style="background: var(--bg-tertiary); color: var(--text-primary);">=</option>
-                <option value=">=" style="background: var(--bg-tertiary); color: var(--text-primary);">≥</option>
-            </select>
-            
-            <!-- Visual separator -->
-            <div style="width: 1px; height: 20px; background: var(--border-color); margin: 0 4px;"></div>
-            
-            <!-- Number input -->
-            <input type="number" id="compare-length" value="6" min="1" max="20" 
-                   style="width: 45px; padding: 4px; border-radius: 20px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); text-align: center; font-weight: 500; outline: none; margin: 0 2px;"
-                   onmouseover="this.style.background='var(--bg-hover)'" 
-                   onmouseout="this.style.background='var(--bg-secondary)'"
-                   onfocus="this.style.borderColor='var(--text-primary)';"
-                   onblur="this.style.borderColor='var(--border-color)';">
-        </div>
-    </div>
+<div style="display: flex; align-items: center; background: var(--bg-tertiary); border-radius: 30px; border: 1px solid var(--border-color); padding: 4px;">
+    <!-- Comparison symbol dropdown -->
+    <select id="length-comparison" style="padding: 8px 12px; border-radius: 30px; background: transparent; color: var(--text-primary); border: none; font-weight: 500; font-size: 1rem; cursor: pointer; outline: none; appearance: none; text-align: center; width: 60px;"
+            onmouseover="this.style.background='var(--bg-hover)';" 
+            onmouseout="this.style.background='transparent';">
+        <option value="<=" style="background: var(--bg-tertiary); color: var(--text-primary);">≤</option>
+        <option value="=" style="background: var(--bg-tertiary); color: var(--text-primary);">=</option>
+        <option value=">=" style="background: var(--bg-tertiary); color: var(--text-primary);">≥</option>
+    </select>
+    
+    <!-- Visual separator -->
+    <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 4px;"></div>
+    
+    <!-- Number input -->
+    <input type="number" id="compare-length" value="6" min="1" max="20" 
+           style="width: 55px; padding: 8px 4px; border-radius: 30px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); text-align: center; font-weight: 500; font-size: 1rem; outline: none; margin: 0 4px;"
+           onmouseover="this.style.background='var(--bg-hover)'" 
+           onmouseout="this.style.background='var(--bg-secondary)'"
+           onfocus="this.style.borderColor='var(--text-primary)';"
+           onblur="this.style.borderColor='var(--border-color)';">
 </div>
     `;
     
