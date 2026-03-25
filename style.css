@@ -861,7 +861,6 @@ html.theme-transitioning * {
     gap: 15px;
 }
 
-/* Rare Prefix Results Styling */
 .rare-prefix-item {
     padding: 15px;
     border-bottom: 1px solid var(--border-primary);
@@ -957,7 +956,6 @@ html.theme-transitioning * {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Mobile Responsive */
 @media (max-width: 768px) {
     .mode-toggle {
         flex-direction: column;
