@@ -1,5 +1,12 @@
 // da theme toggle
 const themeToggle = document.getElementById('theme-toggle');
+function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delay);
+    };
+}
 const htmlElement = document.documentElement;
 
 const savedTheme = localStorage.getItem('theme') || 'light';
@@ -75,9 +82,10 @@ class InesBotSearcher {
         document.getElementById('search-btn')?.addEventListener('click', () => this.performSearch());
         document.getElementById('clear-btn')?.addEventListener('click', () => this.clearSearch());
         
-        document.getElementById('prefix-input')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.performSearch();
-        });
+        const debouncedSearch = debounce(() => this.performSearch(), 300);
+        document.getElementById('prefix-input')?.addEventListener('input', debouncedSearch);
+        document.getElementById('suffix-input')?.addEventListener('input', debouncedSearch);
+        document.querySelectorAll('input[name="sort"]').forEach(r => r.addEventListener('change', () => this.performSearch()));
         
         document.getElementById('suffix-input')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.performSearch();
@@ -921,9 +929,8 @@ filteredWords.forEach(word => {
         searchState = null;
     });
     
-    document.getElementById('rare-prefix')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') document.getElementById('rare-search-btn').click();
-    });
+    const debouncedRare = debounce(() => document.getElementById('rare-search-btn').click(), 500);
+    document.getElementById('rare-prefix')?.addEventListener('input', debouncedRare);
     
 function loadVerifiedResults(isFirstLoad = false) {
     if (!searchState) return;
