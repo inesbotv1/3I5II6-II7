@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,7 +33,6 @@
         </div>
 
         <div class="control-panel">
-            <!-- Mode Toggle -->
             <div class="mode-toggle-container">
                 <div class="mode-toggle">
                     <button id="mode-normal" class="mode-btn mode-active">🔍 Normal Word Search</button>
@@ -40,7 +40,6 @@
                 </div>
             </div>
 
-            <!-- NORMAL SEARCH SECTION (visible by default) -->
             <div id="normal-search-section">
                 <div class="sort-options">
                     <span class="sort-label">Sort by:</span>
@@ -55,7 +54,6 @@
                     </label>
                 </div>
 
-                <!-- Search filters for normal mode -->
                 <div class="search-filters">
                     <div class="filter-group">
                         <label for="prefix-input">Starts with:</label>
@@ -74,9 +72,7 @@
                 </div>
             </div>
 
-            <!-- RARE FINDER SECTION (hidden by default) -->
             <div id="rare-finder-section" style="display: none;">
-                <!-- Rare Finder Sort Options -->
                 <div class="rare-sort-options" style="margin-bottom: 20px;">
                     <span class="sort-label">Sort results by:</span>
                     <label class="radio-label">
@@ -90,7 +86,6 @@
                     </label>
                 </div>
                 
-                <!-- Rare Finder Filters -->
                 <div class="rare-filters">
                     <div class="filter-group">
                         <label for="rare-prefix-length">Prefix length:</label>
@@ -118,7 +113,6 @@
                     </div>
                 </div>
                 
-                <!-- Rare Finder Action Buttons -->
                 <div class="action-buttons" style="margin-top: 20px;">
                     <button id="rare-search-btn" class="btn btn-search">Find Rare Prefixes</button>
                     <button id="rare-clear-btn" class="btn btn-clear">Clear Rare Filters</button>
