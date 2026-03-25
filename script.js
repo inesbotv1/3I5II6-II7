@@ -19,7 +19,6 @@ themeToggle.addEventListener('click', () => {
     }, 20);
 });
 
-// random phrase generator
 const phrases = [
     "We ALL fw this, right?",
     "Keiko throwing",
@@ -42,16 +41,12 @@ const phrases = [
     "Red angel wolves",
 ];
 
-// set random phrase when page loads
 document.addEventListener('DOMContentLoaded', function() {
     const phraseElement = document.getElementById('random-phrase');
     if (phraseElement) {
-        // get the remaining phrases from localStorage
         let remainingPhrases = JSON.parse(localStorage.getItem('remainingPhrases'));
         
-        // if no remaining phrases or empty, reshuffle all phrases
         if (!remainingPhrases || remainingPhrases.length === 0) {
-            // create a shuffled copy of all phrases
             remainingPhrases = [...phrases];
             for (let i = remainingPhrases.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -59,22 +54,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // pick the next phrase (first in the shuffled list)
         const nextPhrase = remainingPhrases.shift();
         
-        // set the phrase
         phraseElement.textContent = nextPhrase;
         
-        // save the remaining phrases
         localStorage.setItem('remainingPhrases', JSON.stringify(remainingPhrases));
     }
 });
 
-// main searcher class
 class InesBotSearcher {
     constructor() {
         this.words = [];
-        this.wordListUrl = 'https://raw.githubusercontent.com/inesbotv1/askari/refs/heads/main/lastletter.txt';
+        this.wordListUrl = 'https://raw.githubusercontent.com/inesbotv1/inesbot/refs/heads/main/lastletter.txt';
         
         this.initEventListeners();
         this.loadWordsFromURL();
@@ -198,9 +189,7 @@ class InesBotSearcher {
 // main searcher
 const searcher = new InesBotSearcher();
 
-// ============================================
-// DICTIONARY PANEL
-// ============================================
+// Dictionary Panel
 
 const definitionCache = new Map();
 let dictionaryPanel = null;
@@ -271,7 +260,6 @@ function createDictionaryPanel() {
     
     dictionaryPanel = panel;
     
-    // drag
     header.addEventListener('mousedown', (e) => {
         if (e.target.id === 'close-panel' || e.target.id === 'minimize-panel') return;
         
@@ -350,7 +338,10 @@ async function fetchFromWiktionary(word) {
                 entry.definitions.slice(0, 1).forEach(def => {
                     result.meanings.push({
                         partOfSpeech: entry.partOfSpeech,
-                        definition: def.definition.replace(/<[^>]*>/g, '').trim()
+                        definition: def.definition
+                            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+                            .replace(/<[^>]*>/g, '')
+                            .trim()
                     });
                 });
             }
@@ -389,28 +380,23 @@ function makeWordsClickable() {
     });
 }
 
-// ============================================
-// RARE PREFIX FINDER - LAZY LOADING VERSION
-// ============================================
+// Rare prefix mode
 
 (function() {
     console.log('🔧 Initializing Rare Prefix Finder...');
     
     let rareWords = [];
     let isLoading = false;
-    let searchState = null; // store search state for lazy loading
+    let searchState = null; 
     let blacklistedPrefixes = new Set();
     
-    // get elements
     const normalBtn = document.getElementById('mode-normal');
     const rareBtn = document.getElementById('mode-rare');
     const normalSection = document.getElementById('normal-search-section');
     const rareSection = document.getElementById('rare-finder-section');
     const searchFilters = document.querySelector('.search-filters');
     
-// mode switching with separate state
 if (normalBtn && rareBtn && normalSection && rareSection) {
-    // store values for each mode
     let normalState = {
         prefix: '',
         suffix: '',
@@ -430,9 +416,7 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
     };
     
     normalBtn.addEventListener('click', () => {
-    // only switch if we're not already in normal mode
     if (!normalBtn.classList.contains('mode-active')) {
-        // save rare state before switching
         rareState = {
             prefix: document.getElementById('rare-prefix').value,
             prefixLength: document.getElementById('rare-prefix-length').value,
@@ -444,7 +428,6 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
             searchState: searchState
         };
             
-            // restore normal state
             document.getElementById('prefix-input').value = normalState.prefix;
             document.getElementById('suffix-input').value = normalState.suffix;
             
@@ -452,7 +435,6 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
                 if (radio.value === normalState.sort) radio.checked = true;
             });
             
-            // restore normal results
             document.getElementById('results-box').innerHTML = normalState.results;
             document.getElementById('result-count').textContent = normalState.resultCount;
             
@@ -465,9 +447,7 @@ if (normalBtn && rareBtn && normalSection && rareSection) {
     });
     
 rareBtn.addEventListener('click', () => {
-    // only switch if we're not already in rare mode
     if (!rareBtn.classList.contains('mode-active')) {
-        // save normal state before switching
         normalState = {
             prefix: document.getElementById('prefix-input').value,
             suffix: document.getElementById('suffix-input').value,
@@ -476,33 +456,26 @@ rareBtn.addEventListener('click', () => {
             resultCount: document.getElementById('result-count').textContent
         };
         
-        // restore rare state
         document.getElementById('rare-prefix').value = rareState.prefix;
         document.getElementById('rare-prefix-length').value = rareState.prefixLength;
         document.getElementById('rare-max-words').value = rareState.maxWords;
         
-        // restore filter mode radio
         const filterRadio = document.querySelector(`input[name="filter-mode"][value="${rareState.filterMode}"]`);
         if (filterRadio) {
             filterRadio.checked = true;
             filterRadio.dispatchEvent(new Event('change'));
         }
         
-        // restore sort radio
         const sortRadio = document.querySelector(`input[name="rare-sort"][value="${rareState.sort}"]`);
         if (sortRadio) sortRadio.checked = true;
         
-        // restore rare results
         document.getElementById('results-box').innerHTML = rareState.results;
         document.getElementById('result-count').textContent = rareState.resultCount;
 
-        // fix
 if (searchState && searchState.currentIndex < searchState.totalCount) {
-    // fixing later
     const oldContainer = document.getElementById('load-more-container');
     if (oldContainer) oldContainer.remove();
     
-    // redo load button
     const container = document.createElement('div');
     container.id = 'load-more-container';
     container.style.cssText = 'display: flex; justify-content: center; margin: 20px 0; flex-direction: column; align-items: center; gap: 10px;';
@@ -526,7 +499,6 @@ if (searchState && searchState.currentIndex < searchState.totalCount) {
     document.getElementById('results-box').appendChild(container);
 }
 
-        // fix
         if (rareState.searchState) {
             searchState = rareState.searchState;
         }
@@ -541,7 +513,6 @@ if (searchState && searchState.currentIndex < searchState.totalCount) {
 });
 }
     
-// load words with blacklist on
 async function loadRareWords() {
     if (isLoading || rareWords.length > 0) return;
     
@@ -550,9 +521,8 @@ async function loadRareWords() {
     resultsBox.innerHTML = '<div class="loading-message">⏳ Loading words and blacklist...</div>';
     
     try {
-        // load both files
         const [wordsResponse, blacklistResponse] = await Promise.all([
-            fetch('https://raw.githubusercontent.com/inesbotv1/askari/refs/heads/main/lastletter.txt?t=' + Date.now()),
+            fetch('https://raw.githubusercontent.com/inesbotv1/inesbot/refs/heads/main/lastletter.txt?t=' + Date.now()),
             fetch('https://raw.githubusercontent.com/inesbotv1/inesbot/refs/heads/main/blacklist.txt?t=' + Date.now())
         ]);
         
@@ -563,7 +533,6 @@ async function loadRareWords() {
             .map(w => w.trim())
             .filter(w => w.length > 0))];
         
-        // load blacklisted prefixes
         blacklistedPrefixes = new Set(
             blacklistText.split(/\r?\n/)
                 .map(line => line.trim().toLowerCase())
@@ -580,15 +549,12 @@ async function loadRareWords() {
     }
 }
     
-// filter mode ui
 function createFilterModeUI() {
     const rareSection = document.getElementById('rare-finder-section');
     if (!rareSection) return;
     
-    // check if controls already exist
     if (document.getElementById('filter-mode-controls')) return;
     
-    // create filter mode controls with better styling
     const filterControls = document.createElement('div');
     filterControls.id = 'filter-mode-controls';
     filterControls.style.marginTop = '20px';
@@ -643,7 +609,6 @@ function createFilterModeUI() {
 </div>
     `;
     
-// find the rare-filters div
     const existingFilters = rareSection.querySelector('.search-filters');
     if (existingFilters) {
         existingFilters.parentNode.insertBefore(filterControls, existingFilters.nextSibling);
@@ -651,18 +616,15 @@ function createFilterModeUI() {
         rareSection.insertBefore(filterControls, document.getElementById('rare-search-btn').parentNode);
     }
     
-    // add event listeners to radio buttons
     const modeRadios = document.querySelectorAll('input[name="filter-mode"]');
     const maxWordsSelect = document.getElementById('rare-max-words');
     
     modeRadios.forEach(radio => {
         radio.addEventListener('change', function() {
-            // reset all labels to default state
             document.querySelectorAll('#filter-mode-controls label').forEach(label => {
                 label.style.background = 'var(--bg-tertiary)';
                 label.style.borderColor = 'var(--border-color)';
                 
-                // reset text color
                 const spans = label.querySelectorAll('span');
                 spans.forEach(span => {
                     if (span.id !== 'mode-max-words-indicator') {
@@ -670,7 +632,6 @@ function createFilterModeUI() {
                     }
                 });
                 
-                // reset indicator if present
                 const indicator = label.querySelector('#mode-max-words-indicator');
                 if (indicator) {
                     indicator.style.background = 'var(--text-secondary)';
@@ -678,12 +639,10 @@ function createFilterModeUI() {
                 }
             });
             
-            // style the selected label
             const selectedLabel = this.closest('label');
             selectedLabel.style.background = 'var(--text-primary)';
             selectedLabel.style.borderColor = 'var(--text-primary)';
             
-            // set text color for selected label
             const selectedSpans = selectedLabel.querySelectorAll('span');
             selectedSpans.forEach(span => {
                 if (span.id !== 'mode-max-words-indicator') {
@@ -691,7 +650,6 @@ function createFilterModeUI() {
                 }
             });
             
-            // style indicator if it's the max-words label
             const selectedIndicator = selectedLabel.querySelector('#mode-max-words-indicator');
             if (selectedIndicator) {
                 selectedIndicator.style.background = 'var(--bg-primary)';
@@ -699,14 +657,11 @@ function createFilterModeUI() {
             }
             
             if (this.value === 'max-words') {
-                // enable max words select
                 maxWordsSelect.disabled = false;
                 maxWordsSelect.style.opacity = '1';
                 maxWordsSelect.style.pointerEvents = 'auto';
-                // update indicator
                 document.getElementById('mode-max-words-indicator').textContent = maxWordsSelect.value;
             } else {
-                // disable max words select
                 maxWordsSelect.disabled = true;
                 maxWordsSelect.style.opacity = '0.5';
                 maxWordsSelect.style.pointerEvents = 'none';
@@ -714,12 +669,10 @@ function createFilterModeUI() {
         });
     });
     
-    // update indicator when max words changes
     maxWordsSelect.addEventListener('change', function() {
         document.getElementById('mode-max-words-indicator').textContent = this.value;
     });
     
-    // set initial state
     setTimeout(() => {
         const checkedRadio = document.querySelector('input[name="filter-mode"]:checked');
         if (checkedRadio) {
@@ -743,9 +696,7 @@ function createFilterModeUI() {
     }, 50);
 }
     
-    // call this after DOM is ready
     setTimeout(createFilterModeUI, 100);
-    // update prefix length dropdown options
 setTimeout(function() {
     const prefixLengthSelect = document.getElementById('rare-prefix-length');
     const modeRadios = document.querySelectorAll('input[name="filter-mode"]');
@@ -756,33 +707,27 @@ setTimeout(function() {
     const selectedMode = document.querySelector('input[name="filter-mode"]:checked')?.value;
     const currentValue = prefixLengthSelect.value;
     
-    // clear current options
     prefixLengthSelect.innerHTML = '';
     
     if (selectedMode === 'length-compare') {
-        // show 1-4 letters
         prefixLengthSelect.innerHTML = `
             <option value="1">1 letter</option>
             <option value="2">2 letters</option>
             <option value="3">3 letters</option>
             <option value="4">4 letters</option>
         `;
-        // set default to 1 letter when switching to compare mode
         prefixLengthSelect.value = '1';
         
-        // also set compare length default to 1
         const compareLength = document.getElementById('compare-length');
         if (compareLength) compareLength.value = '1';
         
     } else {
-        // show 2-4 letters only
         prefixLengthSelect.innerHTML = `
             <option value="2">2 letters</option>
             <option value="3">3 letters</option>
             <option value="4">4 letters</option>
         `;
         
-        // restore previous value if still valid (only for max-words mode)
         if (Array.from(prefixLengthSelect.options).some(opt => opt.value === currentValue)) {
             prefixLengthSelect.value = currentValue;
         } else {
@@ -791,17 +736,14 @@ setTimeout(function() {
     }
 }
     
-    // add event listeners to mode radios
     modeRadios.forEach(radio => {
         radio.addEventListener('change', updatePrefixLengthOptions);
     });
     
-    // initial call to set correct options
     updatePrefixLengthOptions();
     
-}, 200); // slight delay to ensure DOM is ready
+}, 200); 
     
-    // search button
     document.getElementById('rare-search-btn')?.addEventListener('click', () => {
         if (rareWords.length === 0) {
             if (isLoading) {
@@ -815,11 +757,9 @@ setTimeout(function() {
         const prefixFilter = document.getElementById('rare-prefix').value.toLowerCase().trim();
         const prefixLength = parseInt(document.getElementById('rare-prefix-length').value);
         
-        // get filter mode
         const filterMode = document.querySelector('input[name="filter-mode"]:checked')?.value || 'max-words';
         const maxWords = filterMode === 'max-words' ? parseInt(document.getElementById('rare-max-words').value) : null;
         
-        // validate input
         if (prefixFilter && !/^[a-z]+$/.test(prefixFilter)) {
             document.getElementById('results-box').innerHTML = '<div class="error-message">❌ Use only letters A-Z</div>';
             return;
@@ -830,22 +770,16 @@ setTimeout(function() {
             return;
         }
         
-        // Show loading
         document.getElementById('results-box').innerHTML = '<div class="loading-message">⏳ Counting prefixes...</div>';
         
-        // Use setTimeout to prevent UI freeze
         setTimeout(() => {
-            // Count prefixes (lightweight operation) - WITH BLACKLIST FILTERING
 const prefixCounts = new Map();
 const wordSet = new Set(rareWords.map(w => w.toLowerCase()));
 
-// convert blacklistedPrefixes Set to array
 const blacklistArray = [...blacklistedPrefixes];
 
-// filter words that start with any blacklisted prefix
 const filteredWords = rareWords.filter(word => {
     const lowerWord = word.toLowerCase();
-    // check if word starts with any blacklisted prefix
     return !blacklistArray.some(prefix => lowerWord.startsWith(prefix));
 });
 
@@ -857,39 +791,31 @@ filteredWords.forEach(word => {
     }
 });
             
-            // get sort option
             const sortOption = document.querySelector('input[name="rare-sort"]:checked')?.value || 'count-asc';
             
-            // convert to array and filter
             const validPrefixes = [];
             
             if (filterMode === 'max-words') {
-                // filter by count range (2 to maxWords)
                 prefixCounts.forEach((count, prefix) => {
                     if (count >= 4 && count <= maxWords) {
                         validPrefixes.push({ prefix, count });
                     }
                 });
 } else if (filterMode === 'length-compare') {
-    // get comparison settings
     const comparisonOp = document.getElementById('length-comparison').value;
     const compareLength = parseInt(document.getElementById('compare-length').value);
     
-    // group words by their prefix
     const wordsByPrefix = new Map();
     
-    // filter words first (apply blacklist)
     const filteredWords = rareWords.filter(word => {
         const lowerWord = word.toLowerCase();
         return !blacklistArray.some(prefix => lowerWord.startsWith(prefix));
     });
     
-    // group all filtered words by their prefix, applying the prefix filter
     for (let word of filteredWords) {
         if (word.length >= prefixLength) {
             const prefix = word.slice(0, prefixLength).toLowerCase();
             
-            // apply the prefix filter here
             if (prefixFilter && !prefix.startsWith(prefixFilter)) continue;
             
             if (!wordsByPrefix.has(prefix)) {
@@ -899,10 +825,8 @@ filteredWords.forEach(word => {
         }
     }
     
-    // check each prefix that has at least 4 words
     wordsByPrefix.forEach((words, prefix) => {
         if (words.length >= 4) {
-            // check if ALL words meet the length comparison
             let allWordsMatch = true;
             
             for (let word of words) {
@@ -933,14 +857,12 @@ filteredWords.forEach(word => {
     });
 }
             
-            // sort prefixes
             validPrefixes.sort((a, b) => {
                 if (sortOption === 'count-asc') return a.count - b.count || a.prefix.localeCompare(b.prefix);
                 if (sortOption === 'count-desc') return b.count - a.count || a.prefix.localeCompare(b.prefix);
                 return a.prefix.localeCompare(b.prefix);
             });
             
-            // store search state
             searchState = {
                 prefixFilter,
                 prefixLength,
@@ -948,20 +870,17 @@ filteredWords.forEach(word => {
                 filterMode,
                 wordSet,
                 allPrefixes: validPrefixes,
-                currentIndex: 0, // Track our position in allPrefixes
+                currentIndex: 0, 
                 pageSize: 10,
                 totalCount: validPrefixes.length,
                 sortOption,
-                validResults: [] // Store verified results
+                validResults: [] 
             };
             
-            // update result count
             document.getElementById('result-count').textContent = validPrefixes.length;
             
-            // clear results box
             document.getElementById('results-box').innerHTML = '';
             
-            // start loading verified results
             if (validPrefixes.length > 0) {
                 loadVerifiedResults(true);
             } else {
@@ -979,13 +898,11 @@ filteredWords.forEach(word => {
         }, 10);
     });
     
-    // clear button
     document.getElementById('rare-clear-btn')?.addEventListener('click', () => {
         document.getElementById('rare-prefix').value = '';
         document.getElementById('rare-prefix-length').value = '2';
         document.getElementById('rare-max-words').value = '4';
         
-        // reset filter mode to max-words
         const maxWordsRadio = document.querySelector('input[name="filter-mode"][value="max-words"]');
         if (maxWordsRadio) {
             maxWordsRadio.checked = true;
@@ -993,7 +910,6 @@ filteredWords.forEach(word => {
             document.getElementById('rare-max-words').style.opacity = '1';
         }
 
-            // reset length comparison fields
     const lengthComparison = document.getElementById('length-comparison');
     if (lengthComparison) lengthComparison.value = '<=';
     const compareLength = document.getElementById('compare-length');
@@ -1002,15 +918,13 @@ filteredWords.forEach(word => {
         document.querySelectorAll('input[name="rare-sort"]')[0].checked = true;
         document.getElementById('results-box').innerHTML = '<p class="placeholder-text">Filters cleared</p>';
         document.getElementById('result-count').textContent = '0';
-        searchState = null; // Clear search state
+        searchState = null;
     });
     
-    // enter key
     document.getElementById('rare-prefix')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') document.getElementById('rare-search-btn').click();
     });
     
-    // function to load verified results (keeps loading until we have pageSize valid ones)
 function loadVerifiedResults(isFirstLoad = false) {
     if (!searchState) return;
     
@@ -1018,11 +932,9 @@ function loadVerifiedResults(isFirstLoad = false) {
     
     if (currentIndex >= totalCount) return;
     
-    // show loading indicator (but not for first load since we already showed one)
     if (!isFirstLoad) {
         const resultsBox = document.getElementById('results-box');
         
-        // remove any existing loading indicator
         const existingLoader = document.getElementById('loading-indicator');
         if (existingLoader) existingLoader.remove();
         
@@ -1033,17 +945,14 @@ function loadVerifiedResults(isFirstLoad = false) {
         resultsBox.appendChild(loadingDiv);
     }
     
-    // use setTimeout to prevent UI freeze
     setTimeout(() => {
         let verified = [];
         let newIndex = currentIndex;
         
-        // keep loading prefixes until we have pageSize valid ones or run out
         while (verified.length < pageSize && newIndex < allPrefixes.length) {
             const p = allPrefixes[newIndex];
             newIndex++;
             
-            // get words for this prefix
             const words = [];
             for (let w of rareWords) {
                 if (w.toLowerCase().startsWith(p.prefix)) {
@@ -1052,7 +961,6 @@ function loadVerifiedResults(isFirstLoad = false) {
                 }
             }
             
-            // verify if prefix is valid
             let isValid = wordSet.has(p.prefix);
             if (!isValid) {
                 for (let word of rareWords) {
@@ -1063,7 +971,6 @@ function loadVerifiedResults(isFirstLoad = false) {
                 }
             }
             
-            // only keep valid prefixes
             if (isValid) {
                 verified.push({
                     prefix: p.prefix,
@@ -1073,45 +980,34 @@ function loadVerifiedResults(isFirstLoad = false) {
             }
         }
         
-        // update search state with new index
         searchState.currentIndex = newIndex;
         
-        // if we dont have enough valid ones AND there are more prefixes to check,
-        // continue collecting BEFORE displaying
         if (verified.length < pageSize && newIndex < allPrefixes.length) {
-            // add these to a temporary collection and keep going
             setTimeout(() => loadVerifiedResults(isFirstLoad), 10);
             return;
         }
         
-        // remove loading indicator
         if (!isFirstLoad) {
             document.getElementById('loading-indicator')?.remove();
         }
         
-        // NOW display results only when we have a full batch or no more data
         if (verified.length > 0) {
             displayVerifiedResults(verified, isFirstLoad);
         }
         
-        // add "load more" button if there are more prefixes to check
         if (searchState.currentIndex < totalCount) {
-            // remove existing load more button if present
             document.getElementById('load-more-container')?.remove();
             addLoadMoreButton();
         } else {
-            // no more prefixes to check
             document.getElementById('load-more-container')?.remove();
         }
     }, 10);
 }
     
-    // function to display verified results
     function displayVerifiedResults(results, isFirstLoad = false) {
         const resultsBox = document.getElementById('results-box');
         const { filterMode, maxWords, totalCount, wordSet, validResults } = searchState;
         
-        // add new results to our stored valid results
         searchState.validResults = [...searchState.validResults, ...results];
         
         let modeDescription = '';
@@ -1124,9 +1020,7 @@ if (filterMode === 'max-words') {
     modeDescription = `all words have length ${opText} ${compareLength}`;
 }
         
-        // ff this is the first batch, show the stats
         if (isFirstLoad || searchState.validResults.length === results.length) {
-            // remove existing stats if any
             const existingStats = document.getElementById('rare-stats');
             if (existingStats) existingStats.remove();
             
@@ -1135,28 +1029,24 @@ if (filterMode === 'max-words') {
             statsDiv.id = 'rare-stats';
             statsDiv.innerHTML = `Found ${totalCount} total prefixes, showing ${searchState.validResults.length} verified with ${modeDescription}`;
             
-            // insert stats at the beginning
             if (resultsBox.firstChild) {
                 resultsBox.insertBefore(statsDiv, resultsBox.firstChild);
             } else {
                 resultsBox.appendChild(statsDiv);
             }
         } else {
-            // update existing stats
             const statsDiv = document.getElementById('rare-stats');
             if (statsDiv) {
                 statsDiv.innerHTML = `Found ${totalCount} total prefixes, showing ${searchState.validResults.length} verified with ${modeDescription}`;
             }
         }
         
-        // add each new result
         results.forEach(r => {
             const isWord = wordSet.has(r.prefix);
             const badge = isWord 
                 ? '<span style="background:#4CAF50; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">word</span>' 
                 : '<span style="background:#FF9800; color:white; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:8px;">ends with</span>';
             
-            // store words data for this prefix
             const wordsData = encodeURIComponent(JSON.stringify(r.words));
             
             const itemDiv = document.createElement('div');
@@ -1175,32 +1065,26 @@ if (filterMode === 'max-words') {
         });
     }
     
-    // function to add "Load More" button
 function addLoadMoreButton() {
     const resultsBox = document.getElementById('results-box');
     const { currentIndex, totalCount, validResults } = searchState;
     
-    // remove any existing load more container
     const existingContainer = document.getElementById('load-more-container');
     if (existingContainer) existingContainer.remove();
     
-    // create container for button and counter
     const container = document.createElement('div');
     container.id = 'load-more-container';
     container.style.cssText = 'display: flex; justify-content: center; margin: 20px 0; flex-direction: column; align-items: center; gap: 10px;';
     
-    // add counter
     const counter = document.createElement('div');
     counter.style.cssText = 'color: var(--text-secondary); font-size: 0.9em;';
     counter.textContent = `Showing ${validResults.length} verified prefixes of ${totalCount} total matches`;
     
-    // add button
     const button = document.createElement('button');
     button.className = 'btn btn-search';
     button.style.cssText = 'width: auto; padding: 8px 30px;';
     button.textContent = 'Load More ▼';
     
-    // click handler name function
     button.onclick = function() {
         this.disabled = true;
         this.textContent = 'Loading...';
@@ -1212,7 +1096,6 @@ function addLoadMoreButton() {
     resultsBox.appendChild(container);
 }
     
-    // toggleWords
     window.toggleWords = function(element) {
         const currentItem = element.closest('.rare-prefix-item');
         const currentWordsDiv = currentItem.querySelector('.rare-prefix-words');
@@ -1226,7 +1109,6 @@ function addLoadMoreButton() {
             return;
         }
         
-        // close others efficiently
         for (let item of allItems) {
             if (item !== currentItem) {
                 const wordsDiv = item.querySelector('.rare-prefix-words');
@@ -1239,7 +1121,6 @@ function addLoadMoreButton() {
             }
         }
         
-        // parse and display words
         const words = JSON.parse(decodeURIComponent(wordsData));
         currentWordsDiv.innerHTML = words.map(w => 
             `<span style="display:inline-block; background:var(--bg-secondary); padding:2px 8px; margin:2px; border-radius:4px;">${w}</span>`
@@ -1249,7 +1130,6 @@ function addLoadMoreButton() {
         element.textContent = 'Hide';
     };
     
-    // da dropdown
     const maxSelect = document.getElementById('rare-max-words');
     if (maxSelect) {
         maxSelect.innerHTML = `
